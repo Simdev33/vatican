@@ -14,6 +14,14 @@ export interface CreateOrderInput {
     visitDate: string
     visitTime: string
   }>
+  stripeCheckoutSessionId?: string
+}
+
+export interface PreparedCheckoutOrder {
+  productTitle: string
+  totalPrice: number
+  customerEmail: string
+  orderInput: CreateOrderInput
 }
 
 export interface AdminOrderLine {
@@ -192,7 +200,7 @@ async function assertScheduleIsAvailable(
   }
 }
 
-export async function createOrder(input: CreateOrderInput) {
+async function prepareOrder(input: CreateOrderInput, options: { skipAvailabilityCheck?: boolean } = {}) {
   const productId = normalize(input.productId)
   const visitDate = normalize(input.visitDate)
   const visitTime = normalize(input.visitTime)
@@ -216,51 +224,81 @@ export async function createOrder(input: CreateOrderInput) {
     throw new Error("Missing required order fields.")
   }
 
+  const productRows = await supabaseRequest<ProductRow[]>(
+    `products?select=id,title,price,category&id=${eqFilter(productId)}&is_active=eq.true&limit=1`,
+  )
+  const product = productRows[0]
+
+  if (!product) {
+    throw new Error("Selected product does not exist.")
+  }
+
+  const componentRows = await supabaseRequest<ProductRow[]>(
+    `products?select=id,title,price,category&id=in.(${componentIds.join(",")})&is_active=eq.true`,
+  )
+  const componentsById = new Map(componentRows.map((row) => [row.id, row]))
+  const requiresTime = (component: ProductRow | undefined) => component?.category !== "River Cruise"
+
+  if (
+    schedule.length !== componentIds.length ||
+    schedule.some((item) => {
+      const component = componentsById.get(item.productId)
+      return !componentIds.includes(item.productId) || !item.visitDate || (requiresTime(component) && !item.visitTime)
+    })
+  ) {
+    throw new Error("Missing required combo schedule fields.")
+  }
+
+  if (!options.skipAvailabilityCheck) {
+    await assertScheduleIsAvailable(schedule)
+  }
+
+  return {
+    product,
+    componentIds,
+    componentsById,
+    schedule,
+    orderInput: {
+      productId,
+      visitDate,
+      visitTime,
+      customerName,
+      customerEmail,
+      customerPhone: customerPhone ?? undefined,
+      items: schedule,
+    },
+  }
+}
+
+export async function prepareCheckoutOrder(input: CreateOrderInput): Promise<PreparedCheckoutOrder> {
+  const prepared = await prepareOrder(input)
+
+  return {
+    productTitle: prepared.product.title,
+    totalPrice: Number(prepared.product.price),
+    customerEmail: prepared.orderInput.customerEmail,
+    orderInput: prepared.orderInput,
+  }
+}
+
+export async function createOrder(input: CreateOrderInput) {
   let orderId: string | null = null
 
   try {
-    const productRows = await supabaseRequest<ProductRow[]>(
-      `products?select=id,title,price,category&id=${eqFilter(productId)}&is_active=eq.true&limit=1`,
-    )
-    const product = productRows[0]
+    const prepared = await prepareOrder(input, { skipAvailabilityCheck: true })
+    const { product, componentIds, componentsById, schedule, orderInput } = prepared
 
-    if (!product) {
-      throw new Error("Selected product does not exist.")
-    }
-
-    const componentRows = await supabaseRequest<ProductRow[]>(
-      `products?select=id,title,price,category&id=in.(${componentIds.join(",")})&is_active=eq.true`,
-    )
-    const componentsById = new Map(componentRows.map((row) => [row.id, row]))
-    const requiresTime = (component: ProductRow | undefined) => component?.category !== "River Cruise"
-
-    if (
-      schedule.length !== componentIds.length ||
-      schedule.some((item) => {
-        const component = componentsById.get(item.productId)
-        return (
-          !componentIds.includes(item.productId) ||
-          !item.visitDate ||
-          (requiresTime(component) && !item.visitTime)
-        )
-      })
-    ) {
-      throw new Error("Missing required combo schedule fields.")
-    }
-
-    await assertScheduleIsAvailable(schedule)
-
-    const orderVisitTime = visitTime || "10:00"
+    const orderVisitTime = orderInput.visitTime || "10:00"
     const [order] = await supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
       method: "POST",
       body: {
         selected_product_id: product.id,
         selected_product_title: product.title,
-        visit_date: visitDate,
+        visit_date: orderInput.visitDate,
         visit_time: orderVisitTime,
-        customer_name: customerName,
-        customer_email: customerEmail,
-        customer_phone: customerPhone,
+        customer_name: orderInput.customerName,
+        customer_email: orderInput.customerEmail,
+        customer_phone: orderInput.customerPhone ?? null,
         total_price: product.price,
         locale: "en",
       },
@@ -284,7 +322,7 @@ export async function createOrder(input: CreateOrderInput) {
         parent_product_id: product.id,
         sort_order: index,
         item_price: itemPrices[index],
-        visit_date: schedule.find((item) => item.productId === component.id)?.visitDate ?? visitDate,
+        visit_date: schedule.find((item) => item.productId === component.id)?.visitDate ?? orderInput.visitDate,
         visit_time: schedule.find((item) => item.productId === component.id)?.visitTime || null,
       })),
       prefer: "return=minimal",
@@ -296,7 +334,7 @@ export async function createOrder(input: CreateOrderInput) {
       productTitle: product.title,
       totalPrice: Number(product.price),
       currency: "EUR",
-      customerEmail,
+      customerEmail: orderInput.customerEmail,
     }
   } catch (error) {
     if (orderId) {

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
-import { revalidatePath } from "next/cache"
-import { createOrder } from "@/lib/orders"
+import { prepareCheckoutOrder } from "@/lib/orders"
 import { createCheckoutSession } from "@/lib/stripe-checkout"
 
 export const runtime = "nodejs"
@@ -24,7 +23,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as OrderRequestBody
     const firstScheduledItem = body.items?.[0]
-    const order = await createOrder({
+    const order = await prepareCheckoutOrder({
       productId: body.productId ?? "",
       visitDate: body.visitDate ?? firstScheduledItem?.visitDate ?? "",
       visitTime: body.visitTime ?? firstScheduledItem?.visitTime ?? "",
@@ -39,20 +38,12 @@ export async function POST(request: Request) {
     })
     const origin = request.headers.get("origin") ?? new URL(request.url).origin
     const session = await createCheckoutSession({
-      orderId: order.orderId,
-      orderNumber: order.orderNumber,
-      productTitle: order.productTitle,
-      totalPrice: order.totalPrice,
-      customerEmail: order.customerEmail,
+      order,
       origin,
     })
 
-    revalidatePath("/admin")
-
     return NextResponse.json({
       ok: true,
-      orderId: order.orderId,
-      orderNumber: order.orderNumber,
       checkoutUrl: session.url,
     })
   } catch (error) {

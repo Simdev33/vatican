@@ -1,7 +1,7 @@
 import { ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
 import { PurchaseTracking } from "@/components/purchase-tracking"
-import { getPaidCheckoutSession } from "@/lib/stripe-checkout"
+import { completePaidCheckoutSession } from "@/lib/stripe-checkout"
 
 export default async function ThankYouPage({
   searchParams,
@@ -10,7 +10,8 @@ export default async function ThankYouPage({
 }) {
   const params = await searchParams
   const orderNumber = params?.order
-  const purchase = params?.session_id ? await getPaidCheckoutSession(params.session_id).catch(() => null) : null
+  const purchase = params?.session_id ? await completePaidCheckoutSession(params.session_id).catch(() => null) : null
+  const displayedOrderNumber = purchase?.orderNumber ?? orderNumber
 
   return (
     <main className="min-h-screen bg-[#f8f6f0] px-4 py-8 text-[#10233f] sm:py-14">
@@ -56,10 +57,10 @@ export default async function ThankYouPage({
           </div>
 
           <aside className="border-t border-slate-100 bg-[#10233f] p-6 text-white sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
-            {orderNumber && (
+            {displayedOrderNumber && (
               <div className="mb-8 rounded-2xl border border-white/10 bg-white/10 p-5">
                 <p className="text-sm text-white/55">Order ID</p>
-                <p className="mt-2 text-4xl font-semibold tracking-tight">{orderNumber}</p>
+                <p className="mt-2 text-4xl font-semibold tracking-tight">{displayedOrderNumber}</p>
                 <p className="mt-2 text-sm text-white/55">Keep this number for support.</p>
               </div>
             )}
