@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { getAvailabilityByProduct } from "@/lib/availability"
 import { getAdminOrders } from "@/lib/orders"
 import { getAvailabilityProducts, getProducts } from "@/lib/products"
@@ -11,6 +12,12 @@ function getTodayKey() {
 }
 
 export async function GET(request: Request) {
+  const authenticated = await isAdminAuthenticated()
+
+  if (!authenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const { searchParams } = new URL(request.url)
   const tab = searchParams.get("tab") ?? "products"
 

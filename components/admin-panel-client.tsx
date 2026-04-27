@@ -4,7 +4,7 @@ import { Check, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import * as React from "react"
-import { setOrderItemFlag, updateProductPrice } from "@/app/admin/actions"
+import { logoutAdmin, setOrderItemFlag, updateProductPrice } from "@/app/admin/actions"
 import { AdminAvailabilityManager } from "@/components/admin-availability-manager"
 import { AdminThemeToggle } from "@/components/admin-theme-toggle"
 import type { ProductAvailability } from "@/lib/availability"
@@ -241,6 +241,14 @@ export function AdminPanelClient({
                 })}
               </nav>
               <AdminThemeToggle />
+              <form action={logoutAdmin}>
+                <button
+                  type="submit"
+                  className="inline-flex h-10 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                >
+                  Logout
+                </button>
+              </form>
               <Link
                 href="/"
                 className="inline-flex h-10 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"

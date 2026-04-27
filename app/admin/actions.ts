@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import {
   closeProductDay,
   closeProductSlot,
@@ -9,6 +10,36 @@ import {
 } from "@/lib/availability"
 import { updateOrderItemFlag } from "@/lib/orders"
 import { updateProductPricing } from "@/lib/products"
+import {
+  clearAdminSession,
+  isAdminAuthenticated,
+  setAdminSession,
+  verifyAdminPassword,
+} from "@/lib/admin-auth"
+
+async function requireAdmin() {
+  const authenticated = await isAdminAuthenticated()
+
+  if (!authenticated) {
+    throw new Error("Unauthorized")
+  }
+}
+
+export async function loginAdmin(formData: FormData) {
+  const input = parseRequiredString(formData.get("password"), "Password")
+
+  if (!verifyAdminPassword(input)) {
+    redirect("/admin?authError=1")
+  }
+
+  await setAdminSession()
+  redirect("/admin")
+}
+
+export async function logoutAdmin() {
+  await clearAdminSession()
+  redirect("/admin")
+}
 
 function parsePrice(value: FormDataEntryValue | null, fieldName: string) {
   if (typeof value !== "string" || value.trim() === "") {
@@ -25,6 +56,7 @@ function parsePrice(value: FormDataEntryValue | null, fieldName: string) {
 }
 
 export async function updateProductPrice(formData: FormData) {
+  await requireAdmin()
   const id = formData.get("id")
 
   if (typeof id !== "string" || !id) {
@@ -46,6 +78,7 @@ function parseRequiredString(value: FormDataEntryValue | null, fieldName: string
 }
 
 export async function setProductDayAvailability(formData: FormData) {
+  await requireAdmin()
   const productId = parseRequiredString(formData.get("productId"), "Product")
   const date = parseRequiredString(formData.get("date"), "Date")
   const intent = parseRequiredString(formData.get("intent"), "Intent")
@@ -61,6 +94,7 @@ export async function setProductDayAvailability(formData: FormData) {
 }
 
 export async function setProductSlotAvailability(formData: FormData) {
+  await requireAdmin()
   const productId = parseRequiredString(formData.get("productId"), "Product")
   const date = parseRequiredString(formData.get("date"), "Date")
   const time = parseRequiredString(formData.get("time"), "Time")
@@ -77,6 +111,7 @@ export async function setProductSlotAvailability(formData: FormData) {
 }
 
 export async function setOrderItemFlag(formData: FormData) {
+  await requireAdmin()
   const orderItemId = parseRequiredString(formData.get("orderItemId"), "Order item")
   const field = parseRequiredString(formData.get("field"), "Field")
   const value = formData.get("value") === "true"
