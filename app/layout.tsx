@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleTags } from '@/components/google-tags'
+import { LanguageProvider } from '@/components/language-provider'
 import './globals.css'
 
 const inter = Inter({ 
@@ -48,7 +49,7 @@ export default function RootLayout({
     <html lang="en" className="bg-background">
       <body className={`${inter.variable} font-sans antialiased`}>
         <GoogleTags />
-        {children}
+        <LanguageProvider>{children}</LanguageProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

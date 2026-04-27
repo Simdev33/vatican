@@ -1,28 +1,17 @@
+"use client"
+
 import Link from "next/link"
 import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from "lucide-react"
-
-const footerLinks = {
-  tickets: [
-    { label: "Louvre Museum", href: "#tickets" },
-    { label: "Eiffel Tower", href: "#tickets" },
-    { label: "Seine River Cruise", href: "#tickets" },
-    { label: "Paris Combo Tickets", href: "#tickets" },
-  ],
-  info: [
-    { label: "About Us", href: "#" },
-    { label: "Opening Hours", href: "#" },
-    { label: "FAQ", href: "#" },
-    { label: "Contact", href: "#" },
-  ],
-  legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cancellation Policy", href: "#" },
-    { label: "Cookie Policy", href: "#" },
-  ],
-}
+import { useLanguage } from "@/components/language-provider"
 
 export function Footer() {
+  const { t } = useLanguage()
+  const footerLinks = {
+    tickets: t.footer.links.tickets.map((label) => ({ label, href: "#tickets" })),
+    info: t.footer.links.info.map((label) => ({ label, href: "#" })),
+    legal: t.footer.links.legal.map((label) => ({ label, href: "#" })),
+  }
+
   return (
     <footer id="contact" className="bg-[#1a365d]">
       {/* Main Footer */}
@@ -43,8 +32,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="mb-6 text-sm leading-relaxed text-white/60">
-              Your trusted partner for Louvre, Eiffel Tower, Seine River Cruise,
-              and Paris combo tickets. Providing seamless booking experiences since 2015.
+              {t.footer.description}
             </p>
             <div className="space-y-3">
               <a
@@ -87,7 +75,7 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-3">
             <div>
               <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-[#d4a853]">
-                Tickets
+                {t.footer.tickets}
               </h3>
               <ul className="space-y-3">
                 {footerLinks.tickets.map((link) => (
@@ -104,7 +92,7 @@ export function Footer() {
             </div>
             <div>
               <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-[#d4a853]">
-                Information
+                {t.footer.information}
               </h3>
               <ul className="space-y-3">
                 {footerLinks.info.map((link) => (
@@ -121,7 +109,7 @@ export function Footer() {
             </div>
             <div>
               <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-[#d4a853]">
-                Legal
+                {t.footer.legal}
               </h3>
               <ul className="space-y-3">
                 {footerLinks.legal.map((link) => (
@@ -145,7 +133,7 @@ export function Footer() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
           {/* Payment Methods */}
           <div className="flex items-center gap-3">
-            <span className="text-xs text-white/40">We accept:</span>
+            <span className="text-xs text-white/40">{t.footer.accept}</span>
             <div className="flex items-center gap-2">
               <div className="flex h-7 items-center rounded bg-white px-2">
                 <span className="text-[10px] font-bold text-[#1a365d]">VISA</span>
@@ -163,7 +151,7 @@ export function Footer() {
           </div>
 
           <p className="text-xs text-white/40">
-            &copy; {new Date().getFullYear()} Paris Tickets by fil the szánshájn. All rights reserved.
+            &copy; {new Date().getFullYear()} Paris Tickets by fil the szánshájn. {t.footer.rights}
           </p>
         </div>
       </div>

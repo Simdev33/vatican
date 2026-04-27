@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import Image from "next/image"
 import { Clock, Check, ArrowRight } from "lucide-react"
 import { DateSelector } from "@/components/date-selector"
+import { useLanguage } from "@/components/language-provider"
 import type { AvailabilityByProduct } from "@/lib/availability"
 import { getProductComponentIds } from "@/lib/product-components"
 
@@ -163,26 +164,22 @@ function getImageStyle(image: string) {
 
 function TicketCard({
   ticket,
+  displayTicket,
   selectedDate,
   isSelected,
   onSelect,
 }: {
   ticket: Ticket
+  displayTicket: Ticket
   selectedDate: Date | undefined
   isSelected: boolean
   onSelect: () => void
 }) {
+  const { locale, t } = useLanguage()
   const formattedPrice = ticket.price.toFixed(2).replace(".", ",")
   const formattedOriginalPrice = ticket.originalPrice?.toFixed(2).replace(".", ",")
   const isComboTicket = ticket.category === "Combo Ticket"
-  const badgeLabel =
-    ticket.badge === "bestseller"
-      ? "Most booked"
-      : ticket.badge === "popular"
-        ? "Popular choice"
-        : ticket.badge === "best-value"
-          ? "Best value"
-          : null
+  const badgeLabel = ticket.badge ? t.tickets.badges[ticket.badge] : null
 
   return (
     <div
@@ -216,7 +213,7 @@ function TicketCard({
                 >
                   <Image
                     src={image}
-                    alt={`${ticket.title} image ${index + 1}`}
+                    alt={`${displayTicket.title} image ${index + 1}`}
                     fill
                     className="object-cover"
                     style={getImageStyle(image)}
@@ -228,7 +225,7 @@ function TicketCard({
           ) : (
             <Image
               src={ticket.image}
-              alt={ticket.title}
+              alt={displayTicket.title}
               fill
               className="object-cover transition-transform duration-150 ease-out group-hover:scale-[1.06]"
               style={getImageStyle(ticket.image)}
@@ -253,28 +250,28 @@ function TicketCard({
           <div className="flex-1">
               <div className="mb-1 flex items-start justify-between gap-3">
                 <h3 className="text-lg font-bold text-[#1a365d] group-hover:text-[#2d4a7c]">
-                  {ticket.title}
+                  {displayTicket.title}
                 </h3>
                 {isSelected && (
                   <span className="rounded-full bg-[#1a365d] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
-                    Selected
+                    {t.tickets.selected}
                   </span>
                 )}
               </div>
-            <p className="mb-3 text-sm text-gray-500">{ticket.subtitle}</p>
+            <p className="mb-3 text-sm text-gray-500">{displayTicket.subtitle}</p>
 
             {/* Meta Info */}
             <div className="mb-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
-                {ticket.duration}
+                {displayTicket.duration}
               </span>
-              <span>{ticket.category}</span>
+              <span>{displayTicket.category}</span>
             </div>
 
             {/* Highlights */}
             <ul className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
-              {ticket.highlights.map((highlight) => (
+              {displayTicket.highlights.map((highlight) => (
                 <li key={highlight} className="flex items-start gap-1.5 text-xs text-gray-600">
                   <Check className="mt-0.5 h-3 w-3 shrink-0 text-green-500" />
                   <span>{highlight}</span>
@@ -284,7 +281,7 @@ function TicketCard({
 
             {selectedDate && (
               <p className="mt-3 text-xs text-[#d4a853]">
-                Available on {selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                {t.tickets.availableOn} {selectedDate.toLocaleDateString(locale, { month: "short", day: "numeric" })}
               </p>
             )}
           </div>
@@ -292,14 +289,14 @@ function TicketCard({
           {/* Price & CTA */}
           <div className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <span className="text-xs text-gray-500">from</span>
+              <span className="text-xs text-gray-500">{t.tickets.from}</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-[#1a365d]">{formattedPrice}&euro;</span>
                 {formattedOriginalPrice && (
                   <span className="text-sm text-gray-400 line-through">{formattedOriginalPrice}&euro;</span>
                 )}
               </div>
-              <span className="text-xs text-gray-400">per person</span>
+              <span className="text-xs text-gray-400">{t.tickets.perPerson}</span>
             </div>
             <button
               type="button"
@@ -313,7 +310,7 @@ function TicketCard({
                   : "bg-[#d4a853] text-[#1a365d] hover:bg-[#e5b964] hover:shadow-md"
               }`}
             >
-              {isSelected ? "Selected" : "Select Ticket"}
+              {isSelected ? t.tickets.selected : t.tickets.selectTicket}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -330,14 +327,19 @@ export function TicketGrid({
   initialTickets?: Ticket[]
   availability?: AvailabilityByProduct
 }) {
+  const { t } = useLanguage()
   const availableTickets = initialTickets.length > 0 ? initialTickets : tickets
+  const translatedTickets = availableTickets.map((ticket) => ({
+    ...ticket,
+    ...(t.products[ticket.id] ?? {}),
+  }))
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedTicketId, setSelectedTicketId] = useState<string>(availableTickets[0]?.id ?? "")
   const [selectedTime, setSelectedTime] = useState<string>("")
   const selectedTicket = availableTickets.find((ticket) => ticket.id === selectedTicketId) ?? null
   const selectedComponentIds = selectedTicket ? getProductComponentIds(selectedTicket.id) : []
   const selectedComponents = selectedComponentIds
-    .map((productId) => availableTickets.find((ticket) => ticket.id === productId))
+    .map((productId) => translatedTickets.find((ticket) => ticket.id === productId))
     .filter((ticket): ticket is Ticket => Boolean(ticket))
     .map((ticket) => ({ id: ticket.id, title: ticket.title, category: ticket.category }))
   const selectedAvailability = selectedTicket
@@ -372,10 +374,10 @@ export function TicketGrid({
         {/* Section Header */}
         <div className="mb-8 text-center lg:mb-10">
           <h2 className="mb-2 text-2xl font-bold text-[#1a365d] sm:text-3xl lg:text-4xl">
-            Choose Your Experience
+            {t.tickets.heading}
           </h2>
           <p className="mx-auto max-w-2xl text-sm text-gray-500 md:text-base">
-            Select a date and explore our curated selection of Paris tickets and combo experiences
+            {t.tickets.subheading}
           </p>
         </div>
 
@@ -396,7 +398,7 @@ export function TicketGrid({
                   selectedTicket
                     ? {
                         id: selectedTicket.id,
-                        title: selectedTicket.title,
+                        title: t.products[selectedTicket.id]?.title ?? selectedTicket.title,
                         price: selectedTicket.price,
                         category: selectedTicket.category,
                       }
@@ -412,25 +414,15 @@ export function TicketGrid({
               {/* Trust badges */}
               <div className="mt-6 rounded-xl border border-gray-100 bg-white p-4">
                 <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                  Why Book With Us
+                  {t.tickets.trustTitle}
                 </h4>
                 <ul className="space-y-2.5">
-                  <li className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="h-4 w-4 text-green-500" />
-                    <span>Free cancellation up to 24h</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="h-4 w-4 text-green-500" />
-                    <span>Instant confirmation</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="h-4 w-4 text-green-500" />
-                    <span>Skip-the-line access</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-sm text-gray-600">
-                    <Check className="h-4 w-4 text-green-500" />
-                    <span>Best price guarantee</span>
-                  </li>
+                  {t.tickets.trustItems.map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                      <Check className="h-4 w-4 text-green-500" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -440,7 +432,7 @@ export function TicketGrid({
           <div className="order-1 lg:order-2">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                {availableTickets.length} Experiences Available
+                {availableTickets.length} {t.tickets.available}
               </h3>
             </div>
 
@@ -450,6 +442,7 @@ export function TicketGrid({
                 <TicketCard
                   key={ticket.id}
                   ticket={ticket}
+                  displayTicket={translatedTickets.find((item) => item.id === ticket.id) ?? ticket}
                   selectedDate={selectedDate}
                   isSelected={ticket.id === selectedTicketId}
                   onSelect={() => handleTicketSelect(ticket.id)}

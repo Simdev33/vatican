@@ -1,7 +1,10 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { Check, X, ChevronRight, ChevronLeft, Star } from "lucide-react"
 import { blogPosts } from "@/lib/blog-posts"
+import { useLanguage } from "@/components/language-provider"
 
 const ticketDetails = [
   {
@@ -64,19 +67,25 @@ This ticket is a great standalone experience and also pairs perfectly with Louvr
 ]
 
 export function ContentSections() {
+  const { t } = useLanguage()
+  const localizedTicketDetails = ticketDetails.map((ticket) => ({
+    ...ticket,
+    ...(t.products[ticket.id === "seine-cruise" ? "boat" : ticket.id] ?? {}),
+  }))
+
   return (
     <section id="gallery" className="bg-white py-16 lg:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="mb-3 text-2xl font-bold text-[#1a365d] sm:text-3xl lg:text-4xl">
-            Explore Our Experiences
+            {t.sections.exploreTitle}
           </h2>
           <p className="mx-auto max-w-2xl text-gray-500">
-            Discover the best ways to experience the Louvre, Eiffel Tower, and Seine River
+            {t.sections.exploreSubtitle}
           </p>
         </div>
 
-        {ticketDetails.map((ticket, index) => (
+        {localizedTicketDetails.map((ticket, index) => (
           <div
             key={ticket.id}
             className={`mb-16 pb-16 ${index < ticketDetails.length - 1 ? "border-b border-gray-100" : ""}`}
@@ -109,13 +118,13 @@ export function ContentSections() {
                 </div>
 
                 <p className="mb-6 text-sm text-gray-500">
-                  The estimated visiting time is around <span className="font-semibold text-[#1a365d]">{ticket.duration}</span>.
+                  {t.sections.estimatedTime} <span className="font-semibold text-[#1a365d]">{ticket.duration}</span>.
                 </p>
 
                 {/* Includes / Excludes */}
                 <div className="grid gap-6 rounded-xl bg-gray-50 p-5 sm:grid-cols-2">
                   <div>
-                    <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-green-600">Includes</h4>
+                    <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-green-600">{t.sections.includes}</h4>
                     <ul className="space-y-2">
                       {ticket.includes.map((item) => (
                         <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
@@ -126,7 +135,7 @@ export function ContentSections() {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-red-500">Not included</h4>
+                    <h4 className="mb-3 text-sm font-bold uppercase tracking-wider text-red-500">{t.sections.notIncluded}</h4>
                     <ul className="space-y-2">
                       {ticket.excludes.map((item) => (
                         <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
@@ -147,28 +156,13 @@ export function ContentSections() {
 }
 
 export function BookingSteps() {
-  const steps = [
-    {
-      number: "01",
-      title: "Select Your Date",
-      description: "Choose the day and time for your Paris visit",
-    },
-    {
-      number: "02",
-      title: "Pick Your Experience",
-      description: "Select from our range of tickets and tours",
-    },
-    {
-      number: "03",
-      title: "Book Securely",
-      description: "Pay online and receive instant confirmation",
-    },
-  ]
+  const { t } = useLanguage()
+  const steps = t.sections.steps
 
   return (
     <section className="bg-[#1a365d] py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h3 className="mb-8 text-center text-lg font-bold text-white">How to Book</h3>
+        <h3 className="mb-8 text-center text-lg font-bold text-white">{t.sections.howToBook}</h3>
         <div className="grid gap-8 md:grid-cols-3">
           {steps.map((step, index) => (
             <div key={index} className="relative text-center">
@@ -187,20 +181,22 @@ export function BookingSteps() {
 }
 
 export function DiscoverSection() {
+  const { t } = useLanguage()
+
   return (
     <section id="discover" className="bg-gray-50 py-16 lg:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex items-end justify-between">
           <div>
             <h2 className="mb-2 text-2xl font-bold text-[#1a365d] sm:text-3xl">
-              Discover Paris
+              {t.sections.discoverTitle}
             </h2>
             <p className="text-gray-500">
-              Learn more about these magnificent places before your visit
+              {t.sections.discoverSubtitle}
             </p>
           </div>
           <Link href="/blog" className="hidden items-center gap-1 text-sm font-medium text-[#d4a853] hover:underline sm:flex">
-            View all articles
+            {t.sections.viewAllArticles}
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
@@ -231,7 +227,7 @@ export function DiscoverSection() {
                   href={`/blog/${article.slug}`}
                   className="inline-flex items-center text-sm font-medium text-[#d4a853] hover:underline"
                 >
-                  Read More
+                  {t.sections.readMore}
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Link>
               </div>
@@ -244,6 +240,7 @@ export function DiscoverSection() {
 }
 
 export function Testimonials() {
+  const { t } = useLanguage()
   const testimonials = [
     {
       name: "Sarah M.",
@@ -270,13 +267,13 @@ export function Testimonials() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
           <h2 className="mb-2 text-2xl font-bold text-[#1a365d] sm:text-3xl">
-            What Our Visitors Say
+            {t.sections.testimonialsTitle}
           </h2>
           <div className="flex items-center justify-center gap-1">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="h-5 w-5 fill-[#d4a853] text-[#d4a853]" />
             ))}
-            <span className="ml-2 text-sm text-gray-500">4.9/5 based on 12,000+ reviews</span>
+            <span className="ml-2 text-sm text-gray-500">{t.sections.testimonialsRating}</span>
           </div>
         </div>
 
@@ -305,6 +302,7 @@ export function Testimonials() {
 }
 
 export function FAQSection() {
+  const { t } = useLanguage()
   const faqs = [
     {
       question: "When will I receive my ticket confirmation?",
@@ -338,10 +336,10 @@ export function FAQSection() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
           <h2 className="mb-3 text-2xl font-bold text-[#1a365d] sm:text-3xl">
-            Frequently Asked Questions
+            {t.sections.faqTitle}
           </h2>
           <p className="text-gray-500">
-            Quick answers before you complete your booking.
+            {t.sections.faqSubtitle}
           </p>
         </div>
 

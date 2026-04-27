@@ -3,16 +3,37 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Menu, X, Phone } from "lucide-react"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { useLanguage } from "@/components/language-provider"
 
 const navItems = [
-  { label: "TICKETS", href: "#tickets" },
-  { label: "GALLERY", href: "#gallery" },
-  { label: "DISCOVER", href: "#discover" },
-  { label: "CONTACT", href: "#contact" },
-]
+  { key: "tickets", href: "#tickets" },
+  { key: "gallery", href: "#gallery" },
+  { key: "discover", href: "#discover" },
+  { key: "contact", href: "#contact" },
+] as const
+
+const navLabels = {
+  tickets: "tickets",
+  gallery: "gallery",
+  discover: "discover",
+  contact: "contact",
+} as const
+
+const brandTagline = {
+  en: "BY fil the szánshájn",
+  fr: "PAR fil the szánshájn",
+  de: "VON fil the szánshájn",
+  es: "POR fil the szánshájn",
+  it: "DI fil the szánshájn",
+} as const
+
+const getNavLabel = (labels: ReturnType<typeof useLanguage>["t"]["nav"], key: keyof typeof navLabels) =>
+  labels[navLabels[key]].toUpperCase()
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { locale, t } = useLanguage()
   const headerOffset = 170
 
   const handleMenuClick = (href: string, closeMobileMenu = false) => {
@@ -50,7 +71,7 @@ export function Header() {
             +33 1 23 45 67 89
           </a>
           <span className="text-xs text-white/60">|</span>
-          <span className="text-xs text-white/80">EN</span>
+          <LanguageSwitcher />
         </div>
       </div>
 
@@ -67,7 +88,7 @@ export function Header() {
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold leading-tight tracking-tight text-[#1a365d]">PARIS TICKETS</span>
-              <span className="text-[9px] tracking-[0.2em] text-gray-400">BY fil the szánshájn</span>
+              <span className="text-[9px] tracking-[0.2em] text-gray-400">{brandTagline[locale]}</span>
             </div>
           </Link>
 
@@ -75,7 +96,7 @@ export function Header() {
           <nav className="hidden items-center gap-8 lg:flex">
             {navItems.map((item) => (
               <Link
-                key={item.label}
+                key={item.key}
                 href={item.href}
                 onClick={(event) => {
                   event.preventDefault()
@@ -83,7 +104,7 @@ export function Header() {
                 }}
                 className="relative text-sm font-medium tracking-wide text-gray-600 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-[#d4a853] after:transition-all hover:text-[#1a365d] hover:after:w-full"
               >
-                {item.label}
+                {getNavLabel(t.nav, item.key)}
               </Link>
             ))}
           </nav>
@@ -97,7 +118,7 @@ export function Header() {
             }}
             className="hidden rounded-full bg-[#d4a853] px-5 py-2 text-sm font-semibold text-[#1a365d] transition-all hover:bg-[#e5b964] hover:shadow-md lg:block"
           >
-            Book Now
+            {t.nav.bookNow}
           </a>
 
           {/* Mobile Menu Button */}
@@ -122,7 +143,7 @@ export function Header() {
           <nav className="flex flex-col space-y-1 px-4 py-4">
             {navItems.map((item) => (
               <Link
-                key={item.label}
+                key={item.key}
                 href={item.href}
                 className="rounded-lg px-3 py-3 text-base font-medium tracking-wide text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#1a365d]"
                 onClick={(event) => {
@@ -130,7 +151,7 @@ export function Header() {
                   handleMenuClick(item.href, true)
                 }}
               >
-                {item.label}
+                {getNavLabel(t.nav, item.key)}
               </Link>
             ))}
             <a
@@ -141,8 +162,11 @@ export function Header() {
                 handleMenuClick("#tickets", true)
               }}
             >
-              Book Now
+              {t.nav.bookNow}
             </a>
+            <div className="mt-2 rounded-lg bg-[#1a365d] px-3 py-3">
+              <LanguageSwitcher />
+            </div>
           </nav>
         </div>
       )}

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/components/language-provider"
 import { isPastBookingSlot } from "@/lib/booking-time"
 import { TIME_SLOTS } from "@/lib/time-slots"
 import type { ProductAvailability } from "@/lib/availability"
@@ -45,6 +46,7 @@ export function DateSelector({
   availability,
   availabilityByProduct = {},
 }: DateSelectorProps) {
+  const { locale, t } = useLanguage()
   const [currentMonth, setCurrentMonth] = React.useState(() => new Date())
   const [fullName, setFullName] = React.useState("")
   const [email, setEmail] = React.useState("")
@@ -120,7 +122,7 @@ export function DateSelector({
   }
 
   const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-  const monthName = currentMonth.toLocaleString("en-US", { month: "long", year: "numeric" })
+  const monthName = currentMonth.toLocaleString(locale, { month: "long", year: "numeric" })
   const formattedSelectedPrice = selectedTicket ? selectedTicket.price.toFixed(2).replace(".", ",") : null
   const selectedDateKey = selectedDate ? formatDateKey(selectedDate) : null
   const closedDaySet = React.useMemo(
@@ -324,7 +326,7 @@ export function DateSelector({
         throw new Error(result.message ?? "Could not complete the order.")
       }
 
-      setSubmitMessage("Order received. Redirecting to your confirmation...")
+      setSubmitMessage(t.booking.redirecting)
       setSubmitAttempted(false)
       setFullName("")
       setEmail("")
@@ -400,7 +402,7 @@ export function DateSelector({
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-[#d4a853]" />
           <h3 className="text-sm font-bold uppercase tracking-wide text-white">
-            Select Your Visit Date
+            {t.booking.selectDate}
           </h3>
         </div>
         {formattedSelectedPrice && (
@@ -418,7 +420,7 @@ export function DateSelector({
           <button
             onClick={goToPreviousMonth}
             className="flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100"
-            aria-label="Previous month"
+            aria-label={t.booking.previousMonth}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -426,7 +428,7 @@ export function DateSelector({
           <button
             onClick={goToNextMonth}
             className="flex h-8 w-8 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100"
-            aria-label="Next month"
+            aria-label={t.booking.nextMonth}
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -502,7 +504,7 @@ export function DateSelector({
             }}
             className="text-sm text-gray-500 transition-colors hover:text-[#1a365d]"
           >
-            Clear selection
+            {t.booking.clearSelection}
           </button>
           <button
             onClick={() => {
@@ -512,14 +514,14 @@ export function DateSelector({
             }}
             className="rounded-full bg-gray-100 px-4 py-1.5 text-sm font-medium text-[#1a365d] transition-colors hover:bg-[#d4a853] hover:text-white"
           >
-            Today
+            {t.booking.today}
           </button>
         </div>
 
         {!isSelectedCruise && (
         <div className="mt-4">
           <p className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-            Select Time
+            {t.booking.selectTime}
           </p>
           <div className="grid grid-cols-3 gap-2">
             {TIME_SLOTS.map((slot) => {
@@ -548,13 +550,13 @@ export function DateSelector({
             })}
           </div>
           {!selectedDate && (
-            <p className="mt-2 text-xs text-gray-400">Select a date first to choose a time slot.</p>
+            <p className="mt-2 text-xs text-gray-400">{t.booking.selectDateFirst}</p>
           )}
         </div>
         )}
         {isSelectedCruise && selectedDate && (
           <p className="mt-4 rounded-lg bg-[#1a365d]/5 px-3 py-2 text-sm font-medium text-[#1a365d]">
-            Seine Cruise is a day pass. Boarding is flexible between 10:00-22:00.
+            {t.booking.dayPassCruise}
           </p>
         )}
         </>
@@ -568,7 +570,7 @@ export function DateSelector({
                 ? isComboDayClosed(component.id, schedule.visitDate)
                 : false
               const calendarMonth = getComboMonth(component.id)
-              const calendarMonthLabel = calendarMonth.toLocaleString("en-US", {
+              const calendarMonthLabel = calendarMonth.toLocaleString(locale, {
                 month: "long",
                 year: "numeric",
               })
@@ -581,7 +583,7 @@ export function DateSelector({
                     </span>
                     {schedule.visitDate && (
                       <span className="mt-1 block text-sm font-semibold text-[#1a365d]">
-                        {new Date(`${schedule.visitDate}T00:00:00`).toLocaleDateString("en-US", {
+                        {new Date(`${schedule.visitDate}T00:00:00`).toLocaleDateString(locale, {
                           month: "long",
                           day: "numeric",
                           year: "numeric",
@@ -655,7 +657,7 @@ export function DateSelector({
 
                   {dayClosed && (
                     <p className="mt-2 text-xs font-medium text-red-500">
-                      This day is closed for {component.title}.
+                      {t.booking.closedDay} {component.title}.
                     </p>
                   )}
 
@@ -688,7 +690,7 @@ export function DateSelector({
                       )
                     }) : (
                       <div className="col-span-3 rounded-lg bg-[#1a365d]/5 px-3 py-2 text-sm font-medium text-[#1a365d]">
-                        Day pass only - no time slot needed.
+                        {t.booking.dayPassOnly}
                       </div>
                     )}
                   </div>
@@ -701,7 +703,7 @@ export function DateSelector({
         <div className="mt-5 space-y-3 border-t border-gray-100 pt-4">
           <div>
             <label htmlFor="full-name" className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-              Name
+              {t.booking.name}
             </label>
             <input
               id="full-name"
@@ -711,7 +713,7 @@ export function DateSelector({
                 setFullName(event.target.value)
                 clearContactErrors()
               }}
-              placeholder="Your full name"
+              placeholder={t.booking.namePlaceholder}
               className={cn(
                 "w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2",
                 showNameError
@@ -720,13 +722,13 @@ export function DateSelector({
               )}
             />
             {showNameError && (
-              <p className="mt-1 text-xs text-red-500">Please enter your full name (first and last name).</p>
+              <p className="mt-1 text-xs text-red-500">{t.booking.nameError}</p>
             )}
           </div>
 
           <div>
             <label htmlFor="email" className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-              Email
+              {t.booking.email}
             </label>
             <input
               id="email"
@@ -736,7 +738,7 @@ export function DateSelector({
                 setEmail(event.target.value)
                 clearContactErrors()
               }}
-              placeholder="you@example.com"
+              placeholder={t.booking.emailPlaceholder}
               className={cn(
                 "w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2",
                 showEmailError
@@ -745,13 +747,13 @@ export function DateSelector({
               )}
             />
             {showEmailError && (
-              <p className="mt-1 text-xs text-red-500">Please enter a valid email address.</p>
+              <p className="mt-1 text-xs text-red-500">{t.booking.emailError}</p>
             )}
           </div>
 
           <div>
             <label htmlFor="email-confirm" className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-              Email Confirmation
+              {t.booking.emailConfirmation}
             </label>
             <input
               id="email-confirm"
@@ -761,7 +763,7 @@ export function DateSelector({
                 setEmailConfirmation(event.target.value)
                 clearContactErrors()
               }}
-              placeholder="Repeat your email"
+              placeholder={t.booking.emailConfirmationPlaceholder}
               className={cn(
                 "w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2",
                 showEmailConfirmationError
@@ -770,13 +772,13 @@ export function DateSelector({
               )}
             />
             {showEmailConfirmationError && (
-              <p className="mt-1 text-xs text-red-500">Email addresses must match.</p>
+              <p className="mt-1 text-xs text-red-500">{t.booking.emailConfirmationError}</p>
             )}
           </div>
 
           <div>
             <label htmlFor="phone-number" className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
-              Phone Number
+              {t.booking.phone}
             </label>
             <input
               id="phone-number"
@@ -786,7 +788,7 @@ export function DateSelector({
                 setPhoneNumber(event.target.value)
                 clearContactErrors()
               }}
-              placeholder="+36 30 123 4567"
+              placeholder={t.booking.phonePlaceholder}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:border-[#d4a853] focus:ring-2 focus:ring-[#d4a853]/30"
             />
           </div>
@@ -797,7 +799,7 @@ export function DateSelector({
             className="mt-2 w-full rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow-md disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
             disabled={!hasCompleteSelection || isSubmitting}
           >
-            {isSubmitting ? "Submitting..." : "Complete Purchase"}
+            {isSubmitting ? t.booking.submitting : t.booking.completePurchase}
           </button>
           {submitMessage && (
             <p className="text-sm font-medium text-green-600">{submitMessage}</p>
@@ -813,15 +815,15 @@ export function DateSelector({
         <div className="border-t border-gray-100 bg-[#1a365d]/5 px-5 py-4">
           {selectedTicket && (
             <div className="mb-2">
-              <p className="text-xs text-gray-500">Selected ticket</p>
+              <p className="text-xs text-gray-500">{t.booking.selectedTicket}</p>
               <p className="text-sm font-semibold text-[#1a365d]">{selectedTicket.title}</p>
             </div>
           )}
           {!isComboSelection && selectedDate && (
             <>
-              <p className="text-xs text-gray-500">Selected date</p>
+              <p className="text-xs text-gray-500">{t.booking.selectedDate}</p>
               <p className="text-base font-bold text-[#1a365d]">
-                {selectedDate.toLocaleDateString("en-US", {
+                {selectedDate.toLocaleDateString(locale, {
                   weekday: "long",
                   day: "numeric",
                   month: "long",
@@ -831,7 +833,7 @@ export function DateSelector({
             </>
           )}
           {!isComboSelection && selectedDate && selectedTime && (
-            <p className="mt-1 text-sm font-medium text-[#1a365d]">Time: {selectedTime}</p>
+            <p className="mt-1 text-sm font-medium text-[#1a365d]">{t.booking.time}: {selectedTime}</p>
           )}
           {isComboSelection && selectedComponents.length > 0 && (
             <div className="mt-2 space-y-1">
@@ -843,7 +845,7 @@ export function DateSelector({
                 return (
                   <p key={component.id} className="text-sm font-medium text-[#1a365d]">
                     {component.title}: {schedule.visitDate}
-                    {needsTimeSlot(component.category) ? ` at ${schedule.visitTime}` : " (day pass)"}
+                    {needsTimeSlot(component.category) ? ` ${t.booking.at} ${schedule.visitTime}` : ` (${t.booking.dayPass})`}
                   </p>
                 )
               })}

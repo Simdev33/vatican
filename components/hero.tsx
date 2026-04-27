@@ -1,5 +1,8 @@
+"use client"
+
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
+import { useLanguage } from "@/components/language-provider"
 
 interface HeroProduct {
   id: string
@@ -56,6 +59,7 @@ function formatBadgePrice(price: number) {
 }
 
 export function Hero({ initialTickets = [] }: { initialTickets?: HeroProduct[] }) {
+  const { t } = useLanguage()
   const productPrices = new Map(initialTickets.map((product) => [product.id, product.price]))
 
   return (
@@ -80,18 +84,18 @@ export function Hero({ initialTickets = [] }: { initialTickets?: HeroProduct[] }
           <div className="flex flex-1 items-center justify-center px-4 pb-6 pt-8 md:pb-10">
             <div className="text-center">
               <h1 className="mx-auto max-w-3xl font-serif text-3xl font-normal leading-tight text-white drop-shadow-lg sm:text-4xl md:text-5xl lg:text-6xl">
-                Louvre, Eiffel Tower &
+                {t.hero.titleTop}
                 <br />
-                <span className="text-[#d4a853]">Seine Cruise</span> Tickets
+                <span className="text-[#d4a853]">{t.hero.titleHighlight}</span> {t.hero.titleBottom}
               </h1>
               <p className="mx-auto mt-4 max-w-xl text-base text-white/80 md:text-lg">
-                Book single attraction tickets or save with Paris combo experiences. Instant confirmation.
+                {t.hero.subtitle}
               </p>
               <a
                 href="#tickets"
                 className="relative z-20 mt-6 inline-flex items-center gap-2 rounded-full bg-[#d4a853] px-6 py-3 text-sm font-semibold text-[#1a365d] transition-all hover:bg-[#e5b964] hover:shadow-lg sm:px-8"
               >
-                View All Tickets
+                {t.hero.cta}
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>
@@ -114,7 +118,7 @@ export function Hero({ initialTickets = [] }: { initialTickets?: HeroProduct[] }
                       {ticket.subtitle}
                     </span>
                     <span className="mt-1 text-[8px] text-white/60 md:text-[9px]">
-                      from
+                      {t.hero.from}
                     </span>
                     <span className="text-sm font-bold text-[#d4a853] md:text-base">
                       {formatBadgePrice(productPrices.get(ticket.targetTicketId) ?? ticket.fallbackPrice)}&euro;
@@ -130,7 +134,7 @@ export function Hero({ initialTickets = [] }: { initialTickets?: HeroProduct[] }
       {/* Gold banner below hero */}
       <div className="bg-gradient-to-r from-[#c9993d] via-[#d4a853] to-[#c9993d] py-4 shadow-md">
         <p className="text-balance text-center text-sm font-medium text-[#1a365d] md:text-base lg:text-lg">
-          Louvre Museum, Eiffel Tower and Seine River Cruise: Book your Ticket Today
+          {t.hero.banner}
         </p>
       </div>
     </>
