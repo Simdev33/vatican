@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="St. Peter's Dome">
+  <rect width="800" height="500" fill="#dbeafe"/>
+  <rect y="350" width="800" height="150" fill="#1a365d"/>
+  <path d="M285 255c20-85 210-85 230 0z" fill="#d4a853"/>
+  <rect x="310" y="255" width="180" height="100" fill="#efe1bf"/>
+  <rect x="365" y="165" width="70" height="65" fill="#efe1bf"/>
+  <path d="M400 90l55 75H345z" fill="#d4a853"/>
+  <rect x="150" y="300" width="500" height="55" fill="#d8c6a2"/>
+  <rect x="180" y="270" width="55" height="85" fill="#efe1bf"/>
+  <rect x="565" y="270" width="55" height="85" fill="#efe1bf"/>
+  <text x="400" y="430" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#fff">St. Peter's Dome</text>
+</svg>

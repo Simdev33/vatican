@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Louvre Museum">
+  <rect width="800" height="500" fill="#f5efe3"/>
+  <rect y="360" width="800" height="140" fill="#1a365d"/>
+  <path d="M400 115 250 360h300z" fill="#d4a853" opacity=".9"/>
+  <path d="M400 115 310 360M400 115l90 245M250 360h300" stroke="#fff7e6" stroke-width="10" fill="none"/>
+  <rect x="90" y="230" width="620" height="125" fill="#d8c6a2"/>
+  <rect x="130" y="260" width="55" height="95" fill="#efe8d9"/>
+  <rect x="215" y="260" width="55" height="95" fill="#efe8d9"/>
+  <rect x="530" y="260" width="55" height="95" fill="#efe8d9"/>
+  <rect x="615" y="260" width="55" height="95" fill="#efe8d9"/>
+  <text x="400" y="430" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#fff">Louvre Museum</text>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Paris and Vatican attractions">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#102a4c"/>
+      <stop offset="0.55" stop-color="#1a365d"/>
+      <stop offset="1" stop-color="#d4a853"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1260" cy="180" r="95" fill="#f6d98b" opacity=".8"/>
+  <path d="M0 690C240 610 360 720 590 650c220-66 330-210 560-135 180 58 260 150 450 96v289H0z" fill="#07192f" opacity=".45"/>
+  <path d="M290 650h170l-32-80h-106z" fill="#ead8b0"/>
+  <path d="M315 570h88l-18-210h-52z" fill="#f3e6c7"/>
+  <path d="M335 360h30l-15-170z" fill="#f7edd2"/>
+  <path d="M310 650l125-290M435 650L310 360M325 500h95M320 575h110" stroke="#8f6b32" stroke-width="10" fill="none"/>
+  <rect x="660" y="355" width="260" height="295" rx="12" fill="#efe1bf"/>
+  <path d="M640 355h300l-150-90z" fill="#d4a853"/>
+  <rect x="710" y="420" width="50" height="230" fill="#1a365d" opacity=".75"/>
+  <rect x="820" y="420" width="50" height="230" fill="#1a365d" opacity=".75"/>
+  <path d="M1070 650c30-210 98-330 190-420 90 90 160 210 190 420z" fill="#efe1bf"/>
+  <path d="M1095 650h330M1160 490h200M1210 360h100" stroke="#8f6b32" stroke-width="14"/>
+  <text x="800" y="780" text-anchor="middle" font-family="Arial, sans-serif" font-size="58" font-weight="700" fill="#fff">Paris &amp; Vatican Tickets</text>
+</svg>

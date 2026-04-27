@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Vatican Museums and Sistine Chapel">
+  <rect width="800" height="500" fill="#f5efe3"/>
+  <rect y="350" width="800" height="150" fill="#1a365d"/>
+  <rect x="105" y="220" width="590" height="135" fill="#d8c6a2"/>
+  <path d="M95 220h610L400 95z" fill="#d4a853"/>
+  <rect x="145" y="255" width="60" height="100" fill="#efe8d9"/>
+  <rect x="235" y="255" width="60" height="100" fill="#efe8d9"/>
+  <rect x="505" y="255" width="60" height="100" fill="#efe8d9"/>
+  <rect x="595" y="255" width="60" height="100" fill="#efe8d9"/>
+  <circle cx="400" cy="245" r="52" fill="#1a365d" opacity=".82"/>
+  <path d="M380 245c0-28 40-28 40 0v110h-40z" fill="#efe8d9"/>
+  <text x="400" y="430" text-anchor="middle" font-family="Arial, sans-serif" font-size="39" font-weight="700" fill="#fff">Vatican Museums</text>
+</svg>

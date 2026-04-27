@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Paris combo ticket">
+  <rect width="800" height="500" fill="#102a4c"/>
+  <circle cx="650" cy="92" r="58" fill="#f6d98b"/>
+  <path d="M170 325h180l-90-150z" fill="#d4a853"/>
+  <path d="M260 175 205 325M260 175l55 150M180 325h160" stroke="#fff7e6" stroke-width="8" fill="none"/>
+  <path d="M500 105h18l40 245h-98z" fill="#d4a853"/>
+  <path d="M509 105 395 365M509 105l115 260M445 240h130M420 310h180" stroke="#f5efe3" stroke-width="12" fill="none"/>
+  <path d="M120 375c80-24 140 24 220 0s140 24 220 0 120 18 170 0v80H120z" fill="#244d81"/>
+  <text x="400" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#fff">Paris Combo Ticket</text>
+</svg>

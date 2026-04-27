@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Seine River Cruise">
+  <rect width="800" height="500" fill="#dbeafe"/>
+  <rect y="275" width="800" height="225" fill="#1a365d"/>
+  <path d="M0 345c90-32 165 32 250 0s165 32 250 0 165 32 300 0v155H0z" fill="#244d81"/>
+  <path d="M170 285h420l-55 80H225z" fill="#f5efe3"/>
+  <rect x="250" y="220" width="250" height="70" rx="12" fill="#d4a853"/>
+  <rect x="280" y="238" width="45" height="34" fill="#1a365d"/>
+  <rect x="350" y="238" width="45" height="34" fill="#1a365d"/>
+  <rect x="420" y="238" width="45" height="34" fill="#1a365d"/>
+  <circle cx="230" cy="365" r="12" fill="#d4a853"/>
+  <circle cx="535" cy="365" r="12" fill="#d4a853"/>
+  <text x="400" y="445" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#fff">Seine River Cruise</text>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Rome combo ticket">
+  <rect width="800" height="500" fill="#102a4c"/>
+  <rect y="365" width="800" height="135" fill="#07192f"/>
+  <rect x="95" y="245" width="260" height="120" fill="#efe1bf"/>
+  <path d="M85 245h280L225 150z" fill="#d4a853"/>
+  <circle cx="225" cy="285" r="42" fill="#1a365d" opacity=".75"/>
+  <path d="M440 230c90-58 205-58 295 0v135H440z" fill="#d4a853"/>
+  <g fill="#1a365d" opacity=".75">
+    <path d="M485 275c0-34 45-34 45 0v60h-45z"/>
+    <path d="M575 260c0-38 48-38 48 0v75h-48z"/>
+    <path d="M665 275c0-34 45-34 45 0v60h-45z"/>
+  </g>
+  <text x="400" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#fff">Rome Combo Ticket</text>
+</svg>
