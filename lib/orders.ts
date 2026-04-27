@@ -293,6 +293,10 @@ export async function createOrder(input: CreateOrderInput) {
     return {
       orderId,
       orderNumber: formatOrderNumber(orderNumber),
+      productTitle: product.title,
+      totalPrice: Number(product.price),
+      currency: "EUR",
+      customerEmail,
     }
   } catch (error) {
     if (orderId) {

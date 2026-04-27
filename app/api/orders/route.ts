@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { createOrder } from "@/lib/orders"
+import { createCheckoutSession } from "@/lib/stripe-checkout"
 
 export const runtime = "nodejs"
 export const preferredRegion = "fra1"
@@ -36,10 +37,24 @@ export async function POST(request: Request) {
         visitTime: item.visitTime ?? "",
       })),
     })
+    const origin = request.headers.get("origin") ?? new URL(request.url).origin
+    const session = await createCheckoutSession({
+      orderId: order.orderId,
+      orderNumber: order.orderNumber,
+      productTitle: order.productTitle,
+      totalPrice: order.totalPrice,
+      customerEmail: order.customerEmail,
+      origin,
+    })
 
     revalidatePath("/admin")
 
-    return NextResponse.json({ ok: true, orderId: order.orderId, orderNumber: order.orderNumber })
+    return NextResponse.json({
+      ok: true,
+      orderId: order.orderId,
+      orderNumber: order.orderNumber,
+      checkoutUrl: session.url,
+    })
   } catch (error) {
     return NextResponse.json(
       {

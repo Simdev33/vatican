@@ -1,16 +1,26 @@
 import { ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
+import { PurchaseTracking } from "@/components/purchase-tracking"
+import { getPaidCheckoutSession } from "@/lib/stripe-checkout"
 
 export default async function ThankYouPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ order?: string }>
+  searchParams?: Promise<{ order?: string; session_id?: string }>
 }) {
   const params = await searchParams
   const orderNumber = params?.order
+  const purchase = params?.session_id ? await getPaidCheckoutSession(params.session_id).catch(() => null) : null
 
   return (
     <main className="min-h-screen bg-[#f8f6f0] px-4 py-8 text-[#10233f] sm:py-14">
+      {purchase && (
+        <PurchaseTracking
+          transactionId={purchase.transactionId}
+          value={purchase.value}
+          currency={purchase.currency}
+        />
+      )}
       <div className="mx-auto max-w-5xl">
         <section className="grid overflow-hidden rounded-[1.75rem] border border-black/5 bg-white shadow-sm lg:grid-cols-[1.05fr_0.95fr]">
           <div className="p-6 sm:p-10 lg:p-12">

@@ -317,6 +317,7 @@ export function DateSelector({
         message?: string
         orderId?: string
         orderNumber?: string
+        checkoutUrl?: string
       }
 
       if (!response.ok || !result.ok) {
@@ -329,7 +330,7 @@ export function DateSelector({
       setEmail("")
       setEmailConfirmation("")
       setPhoneNumber("")
-      window.location.href = `/thank-you?order=${encodeURIComponent(result.orderNumber ?? "")}`
+      window.location.href = result.checkoutUrl ?? `/thank-you?order=${encodeURIComponent(result.orderNumber ?? "")}`
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not complete the order.")
     } finally {
