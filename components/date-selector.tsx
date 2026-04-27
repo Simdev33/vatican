@@ -784,9 +784,11 @@ export function DateSelector({
             <input
               id="phone-number"
               type="tel"
+              inputMode="tel"
               value={phoneNumber}
               onChange={(event) => {
-                setPhoneNumber(event.target.value)
+                const sanitizedPhone = event.target.value.replace(/[^\d+\-()\s]/g, "")
+                setPhoneNumber(sanitizedPhone)
                 clearContactErrors()
               }}
               placeholder={t.booking.phonePlaceholder}

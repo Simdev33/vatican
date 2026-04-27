@@ -243,7 +243,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     footer: {
       description: "Your trusted partner for Louvre, Eiffel Tower, Seine River Cruise, and Paris combo tickets. Providing seamless booking experiences since 2015.",
       tickets: "Tickets",
-      information: "Information",
+      information: "Contact",
       legal: "Legal",
       accept: "We accept:",
       rights: "All rights reserved.",
@@ -335,7 +335,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     footer: {
       description: "Votre partenaire de confiance pour les billets Louvre, tour Eiffel, croisière sur la Seine et combos à Paris.",
       tickets: "Billets",
-      information: "Informations",
+      information: "Contact",
       legal: "Mentions légales",
       accept: "Nous acceptons :",
       rights: "Tous droits réservés.",
@@ -434,7 +434,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     footer: {
       description: "Ihr zuverlässiger Partner für Louvre-, Eiffelturm-, Seine-Kreuzfahrt- und Paris-Kombitickets.",
       tickets: "Tickets",
-      information: "Informationen",
+      information: "Kontakt",
       legal: "Rechtliches",
       accept: "Wir akzeptieren:",
       rights: "Alle Rechte vorbehalten.",
@@ -533,7 +533,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     footer: {
       description: "Tu socio de confianza para entradas al Louvre, Torre Eiffel, crucero por el Sena y combos de París.",
       tickets: "Entradas",
-      information: "Información",
+      information: "Contacto",
       legal: "Legal",
       accept: "Aceptamos:",
       rights: "Todos los derechos reservados.",
@@ -632,7 +632,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     footer: {
       description: "Il tuo partner di fiducia per biglietti Louvre, Torre Eiffel, crociera sulla Senna e combo Parigi.",
       tickets: "Biglietti",
-      information: "Informazioni",
+      information: "Contatti",
       legal: "Legale",
       accept: "Accettiamo:",
       rights: "Tutti i diritti riservati.",
