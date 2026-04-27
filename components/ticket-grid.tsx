@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Clock, Check, ArrowRight } from "lucide-react"
 import { DateSelector } from "@/components/date-selector"
@@ -27,6 +27,10 @@ export interface Ticket {
   originalPrice?: number
   badge: "bestseller" | "popular" | "best-value" | null
   category: "Entry Ticket" | "River Cruise" | "Combo Ticket"
+}
+
+type DisplayTicket = Ticket & {
+  categoryLabel: string
 }
 
 const tickets: Ticket[] = [
@@ -167,12 +171,14 @@ function TicketCard({
   displayTicket,
   selectedDate,
   isSelected,
+  isHighlighted,
   onSelect,
 }: {
   ticket: Ticket
-  displayTicket: Ticket
+  displayTicket: DisplayTicket
   selectedDate: Date | undefined
   isSelected: boolean
+  isHighlighted: boolean
   onSelect: () => void
 }) {
   const { locale, t } = useLanguage()
@@ -194,7 +200,11 @@ function TicketCard({
         }
       }}
       className={`group overflow-hidden rounded-xl border bg-white shadow-sm transition-all hover:shadow-lg ${
-        isSelected ? "border-[#1a365d] ring-2 ring-[#d4a853]/40" : "border-gray-100"
+        isSelected
+          ? "border-[#1a365d] ring-2 ring-[#d4a853]/40"
+          : isHighlighted
+            ? "border-[#d4a853] ring-4 ring-[#d4a853]/50 ring-offset-4 ring-offset-gray-50"
+            : "border-gray-100"
       }`}
     >
       <div className="flex flex-col sm:flex-row">
@@ -266,7 +276,7 @@ function TicketCard({
                 <Clock className="h-3.5 w-3.5" />
                 {displayTicket.duration}
               </span>
-              <span>{displayTicket.category}</span>
+              <span>{displayTicket.categoryLabel}</span>
             </div>
 
             {/* Highlights */}
@@ -329,10 +339,17 @@ export function TicketGrid({
 }) {
   const { t } = useLanguage()
   const availableTickets = initialTickets.length > 0 ? initialTickets : tickets
-  const translatedTickets = availableTickets.map((ticket) => ({
-    ...ticket,
-    ...(t.products[ticket.id] ?? {}),
-  }))
+  const translatedTickets: DisplayTicket[] = availableTickets.map((ticket) => {
+    const localized = t.products[ticket.id]
+    return {
+      ...ticket,
+      title: localized?.title ?? ticket.title,
+      subtitle: localized?.subtitle ?? ticket.subtitle,
+      duration: localized?.duration ?? ticket.duration,
+      highlights: localized?.highlights ?? ticket.highlights,
+      categoryLabel: localized?.category ?? ticket.category,
+    }
+  })
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedTicketId, setSelectedTicketId] = useState<string>(availableTickets[0]?.id ?? "")
   const [selectedTime, setSelectedTime] = useState<string>("")
@@ -340,20 +357,31 @@ export function TicketGrid({
   const selectedComponentIds = selectedTicket ? getProductComponentIds(selectedTicket.id) : []
   const selectedComponents = selectedComponentIds
     .map((productId) => translatedTickets.find((ticket) => ticket.id === productId))
-    .filter((ticket): ticket is Ticket => Boolean(ticket))
+    .filter((ticket): ticket is DisplayTicket => Boolean(ticket))
     .map((ticket) => ({ id: ticket.id, title: ticket.title, category: ticket.category }))
   const selectedAvailability = selectedTicket
     ? mergeAvailability(selectedComponentIds.map((productId) => availability[productId]))
     : undefined
   const dateSelectorRef = useRef<HTMLDivElement | null>(null)
   const highlightTimeoutRef = useRef<number | null>(null)
+  const ticketHighlightTimeoutRef = useRef<number | null>(null)
   const [highlightDateSelector, setHighlightDateSelector] = useState(false)
+  const [highlightedTicketId, setHighlightedTicketId] = useState<string | null>(null)
 
-  const handleTicketSelect = (ticketId: string) => {
+  const handleTicketSelect = (ticketId: string, options: { scrollToDateSelector?: boolean } = {}) => {
+    const shouldScrollToDateSelector = options.scrollToDateSelector ?? true
     setSelectedTicketId(ticketId)
     setSelectedTime("")
+    setHighlightedTicketId(ticketId)
 
-    if (typeof window !== "undefined" && dateSelectorRef.current) {
+    if (ticketHighlightTimeoutRef.current) {
+      window.clearTimeout(ticketHighlightTimeoutRef.current)
+    }
+    ticketHighlightTimeoutRef.current = window.setTimeout(() => {
+      setHighlightedTicketId((current) => (current === ticketId ? null : current))
+    }, 1200)
+
+    if (shouldScrollToDateSelector && typeof window !== "undefined" && dateSelectorRef.current) {
       const yPosition = dateSelectorRef.current.getBoundingClientRect().top + window.scrollY - 96
       window.scrollTo({ top: Math.max(yPosition, 0), behavior: "smooth" })
       setHighlightDateSelector(true)
@@ -367,6 +395,27 @@ export function TicketGrid({
       }, 1200)
     }
   }
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const onHeroTicketFocus = (event: Event) => {
+      const customEvent = event as CustomEvent<{ ticketId?: string }>
+      const ticketId = customEvent.detail?.ticketId
+      if (!ticketId) return
+      setHighlightedTicketId(ticketId)
+
+      if (ticketHighlightTimeoutRef.current) {
+        window.clearTimeout(ticketHighlightTimeoutRef.current)
+      }
+      ticketHighlightTimeoutRef.current = window.setTimeout(() => {
+        setHighlightedTicketId((current) => (current === ticketId ? null : current))
+      }, 1200)
+    }
+
+    window.addEventListener("hero-ticket-focus", onHeroTicketFocus)
+    return () => window.removeEventListener("hero-ticket-focus", onHeroTicketFocus)
+  }, [])
 
   return (
     <section id="tickets" className="scroll-mt-20 bg-gray-50 py-10 lg:py-16">
@@ -442,9 +491,15 @@ export function TicketGrid({
                 <TicketCard
                   key={ticket.id}
                   ticket={ticket}
-                  displayTicket={translatedTickets.find((item) => item.id === ticket.id) ?? ticket}
+                  displayTicket={
+                    translatedTickets.find((item) => item.id === ticket.id) ?? {
+                      ...ticket,
+                      categoryLabel: ticket.category,
+                    }
+                  }
                   selectedDate={selectedDate}
                   isSelected={ticket.id === selectedTicketId}
+                  isHighlighted={ticket.id === highlightedTicketId}
                   onSelect={() => handleTicketSelect(ticket.id)}
                 />
               ))}

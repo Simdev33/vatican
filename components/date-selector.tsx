@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/language-provider"
 import { isPastBookingSlot } from "@/lib/booking-time"
-import { TIME_SLOTS } from "@/lib/time-slots"
+import { getTimeSlotsForProduct } from "@/lib/time-slots"
 import type { ProductAvailability } from "@/lib/availability"
 
 function formatDateKey(date: Date) {
@@ -62,6 +62,7 @@ export function DateSelector({
   const [comboMonths, setComboMonths] = React.useState<Record<string, Date>>({})
   const isComboSelection = selectedComponents.length > 1
   const isSelectedCruise = selectedTicket?.category === "River Cruise"
+  const selectedTicketTimeSlots = selectedTicket ? getTimeSlotsForProduct(selectedTicket.id) : []
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -524,7 +525,7 @@ export function DateSelector({
             {t.booking.selectTime}
           </p>
           <div className="grid grid-cols-3 gap-2">
-            {TIME_SLOTS.map((slot) => {
+            {selectedTicketTimeSlots.map((slot) => {
               const isSelectedSlot = selectedTime === slot
               const isClosedSlot = closedSlotSet.has(slot)
               const isPastSlot = isUnavailablePastSlot(selectedDateKey, slot)
@@ -662,7 +663,7 @@ export function DateSelector({
                   )}
 
                   <div className="mt-3 grid grid-cols-3 gap-2">
-                    {needsTimeSlot(component.category) ? TIME_SLOTS.map((slot) => {
+                    {needsTimeSlot(component.category) ? getTimeSlotsForProduct(component.id).map((slot) => {
                       const slotClosed = schedule.visitDate
                         ? isComboSlotClosed(component.id, schedule.visitDate, slot)
                         : false

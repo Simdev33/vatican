@@ -9,7 +9,7 @@ import {
 } from "@/app/admin/actions"
 import type { ProductAvailability } from "@/lib/availability"
 import type { ProductCategory } from "@/lib/products"
-import { TIME_SLOTS } from "@/lib/time-slots"
+import { getTimeSlotsForProduct } from "@/lib/time-slots"
 import { cn } from "@/lib/utils"
 
 type AvailabilityProduct = {
@@ -81,6 +81,7 @@ export function AdminAvailabilityManager({
   const [month, setMonth] = React.useState(() => parseDateKey(selectedDate))
   const [pendingKey, setPendingKey] = React.useState<string | null>(null)
   const selectedAvailability = availability[selectedProduct?.id ?? ""]
+  const selectedProductTimeSlots = selectedProduct ? getTimeSlotsForProduct(selectedProduct.id) : []
   const selectedClosedDays = React.useMemo(
     () => new Set(selectedAvailability?.closedDays ?? []),
     [selectedAvailability?.closedDays],
@@ -314,7 +315,7 @@ export function AdminAvailabilityManager({
             </div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {TIME_SLOTS.map((slot) => {
+              {selectedProductTimeSlots.map((slot) => {
                 const closed = selectedClosedSlots.has(slot)
                 const pending = pendingKey === `slot-${slot}`
 

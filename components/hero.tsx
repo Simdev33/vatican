@@ -61,6 +61,23 @@ function formatBadgePrice(price: number) {
 export function Hero({ initialTickets = [] }: { initialTickets?: HeroProduct[] }) {
   const { t } = useLanguage()
   const productPrices = new Map(initialTickets.map((product) => [product.id, product.price]))
+  const scrollToTicket = (ticketId: string) => {
+    if (typeof window === "undefined") return
+
+    const target = document.getElementById(`ticket-${ticketId}`)
+    if (!target) return
+
+    window.dispatchEvent(new CustomEvent("hero-ticket-focus", { detail: { ticketId } }))
+
+    const rect = target.getBoundingClientRect()
+    const absoluteTop = rect.top + window.scrollY
+    const centeredTop = absoluteTop - window.innerHeight / 2 + rect.height / 2
+
+    window.scrollTo({
+      top: Math.max(centeredTop, 0),
+      behavior: "smooth",
+    })
+  }
 
   return (
     <>
@@ -108,6 +125,10 @@ export function Hero({ initialTickets = [] }: { initialTickets?: HeroProduct[] }
                 <a
                   key={ticket.id}
                   href={`#ticket-${ticket.targetTicketId}`}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    scrollToTicket(ticket.targetTicketId)
+                  }}
                   className="group flex justify-center"
                 >
                   <div className="flex h-20 w-20 flex-col items-center justify-center rounded-full border border-[#d4a853] bg-[#1a365d]/85 p-2 text-center backdrop-blur-sm transition-all hover:scale-105 hover:border-[#f0c56c] hover:bg-[#1a365d]/95 sm:h-24 sm:w-24 md:h-28 md:w-28 lg:h-32 lg:w-32">

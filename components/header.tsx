@@ -121,19 +121,21 @@ export function Header() {
             {t.nav.bookNow}
           </a>
 
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          <div className="flex items-center gap-2 lg:hidden">
+            <LanguageSwitcher variant="light" />
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-md p-2 text-gray-700"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -164,9 +166,6 @@ export function Header() {
             >
               {t.nav.bookNow}
             </a>
-            <div className="mt-2 rounded-lg bg-[#1a365d] px-3 py-3">
-              <LanguageSwitcher />
-            </div>
           </nav>
         </div>
       )}
