@@ -176,10 +176,7 @@ function normalizeTicketBreakdown(
 }
 
 function formatTicketBreakdownLines(breakdown: TicketBreakdownRow[]) {
-  return breakdown.map((item) => {
-    const total = typeof item.totalPrice === "number" ? ` (${item.totalPrice.toFixed(2)} EUR)` : ""
-    return `${item.label}: ${item.quantity}${total}`
-  })
+  return breakdown.map((item) => `${item.label}: ${item.quantity}`)
 }
 
 function getTicketTypePrice(product: ProductRow, typeId: string | undefined) {
@@ -200,6 +197,10 @@ function priceTicketBreakdown(product: ProductRow, breakdown: ReturnType<typeof 
       totalPrice: Number((unitPrice * item.quantity).toFixed(2)),
     }
   })
+}
+
+function getPricedTicketBreakdownTotal(breakdown: ReturnType<typeof priceTicketBreakdown>) {
+  return breakdown.reduce((sum, ticketType) => sum + ticketType.totalPrice, 0)
 }
 
 function parseProductTitleWithTicketBreakdown(title: string) {
@@ -332,14 +333,14 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
 
     return {
       ...item,
-      ticketBreakdown: component ? priceTicketBreakdown(component, item.ticketBreakdown) : item.ticketBreakdown,
+      ticketBreakdown: component ? priceTicketBreakdown(component, item.ticketBreakdown) : [],
     }
   })
   const totalPrice = Number(
     pricedSchedule
       .reduce(
         (sum, item) =>
-          sum + item.ticketBreakdown.reduce((itemSum, ticketType) => itemSum + (ticketType.totalPrice ?? 0), 0),
+          sum + getPricedTicketBreakdownTotal(item.ticketBreakdown),
         0,
       )
       .toFixed(2),
@@ -363,8 +364,8 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
       customerEmail,
       customerPhone: customerPhone ?? undefined,
       locale,
-      ticketBreakdown: pricedSchedule.find((item) => item.productId === productId)?.ticketBreakdown ?? normalizeTicketBreakdown(input.ticketBreakdown),
-      items: pricedSchedule,
+      ticketBreakdown: normalizeTicketBreakdown(input.ticketBreakdown),
+      items: schedule,
     },
   }
 }
@@ -417,13 +418,13 @@ export async function createOrder(input: CreateOrderInput) {
         order_id: orderId,
         product_id: component.id,
         product_title: component.title,
-        ticket_breakdown: schedule.find((item) => item.productId === component.id)?.ticketBreakdown ?? [],
+        ticket_breakdown: orderInput.items?.find((item) => item.productId === component.id)?.ticketBreakdown ?? [],
         parent_product_id: product.id,
         sort_order: index,
         item_price:
           schedule
             .find((item) => item.productId === component.id)
-            ?.ticketBreakdown.reduce((sum, ticketType) => sum + (ticketType.totalPrice ?? 0), 0) ?? 0,
+            ?.ticketBreakdown.reduce((sum, ticketType) => sum + ticketType.totalPrice, 0) ?? 0,
         visit_date: schedule.find((item) => item.productId === component.id)?.visitDate ?? orderInput.visitDate,
         visit_time: schedule.find((item) => item.productId === component.id)?.visitTime || null,
       })),

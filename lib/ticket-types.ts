@@ -9,8 +9,6 @@ export type TicketBreakdownItem = {
   id?: string
   label: string
   quantity: number
-  unitPrice?: number
-  totalPrice?: number
 }
 
 const EN_DEFAULT_TICKET_TYPE_OPTIONS: TicketTypeOption[] = [
