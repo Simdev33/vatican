@@ -337,13 +337,13 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
     }
   })
   const totalPrice = Number(
-    pricedSchedule
-      .reduce(
-        (sum, item) =>
-          sum + getPricedTicketBreakdownTotal(item.ticketBreakdown),
-        0,
-      )
-      .toFixed(2),
+    (product.category === "Combo Ticket"
+      ? Number(product.price)
+      : pricedSchedule.reduce(
+          (sum, item) => sum + getPricedTicketBreakdownTotal(item.ticketBreakdown),
+          0,
+        )
+    ).toFixed(2),
   )
 
   if (totalPrice <= 0) {
@@ -411,6 +411,8 @@ export async function createOrder(input: CreateOrderInput) {
     const orderedComponents = componentIds
       .map((componentId) => componentsById.get(componentId))
       .filter((component): component is ProductRow => Boolean(component))
+    const comboItemPrices =
+      product.category === "Combo Ticket" ? allocateItemPrices(totalPrice, orderedComponents) : []
 
     await supabaseRequest("order_items", {
       method: "POST",
@@ -422,9 +424,11 @@ export async function createOrder(input: CreateOrderInput) {
         parent_product_id: product.id,
         sort_order: index,
         item_price:
-          schedule
-            .find((item) => item.productId === component.id)
-            ?.ticketBreakdown.reduce((sum, ticketType) => sum + ticketType.totalPrice, 0) ?? 0,
+          product.category === "Combo Ticket"
+            ? comboItemPrices[index]
+            : schedule
+                .find((item) => item.productId === component.id)
+                ?.ticketBreakdown.reduce((sum, ticketType) => sum + ticketType.totalPrice, 0) ?? 0,
         visit_date: schedule.find((item) => item.productId === component.id)?.visitDate ?? orderInput.visitDate,
         visit_time: schedule.find((item) => item.productId === component.id)?.visitTime || null,
       })),
