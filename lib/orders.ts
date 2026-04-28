@@ -63,6 +63,7 @@ interface ProductRow {
   id: string
   title: string
   price: string
+  ticket_type_prices: Record<string, number> | null
   category: string
 }
 
@@ -141,6 +142,7 @@ interface RestOrderItemRow {
   order_id: string
   product_id: string
   product_title: string
+  ticket_breakdown: TicketBreakdownRow[] | null
   parent_product_id: string
   visit_date: string | null
   visit_time: string | null
@@ -173,8 +175,31 @@ function normalizeTicketBreakdown(
     .filter((item) => item.label)
 }
 
-function formatTicketBreakdownLines(breakdown: ReturnType<typeof normalizeTicketBreakdown>) {
-  return breakdown.map((item) => `${item.label}: ${item.quantity}`)
+function formatTicketBreakdownLines(breakdown: TicketBreakdownRow[]) {
+  return breakdown.map((item) => {
+    const total = typeof item.totalPrice === "number" ? ` (${item.totalPrice.toFixed(2)} EUR)` : ""
+    return `${item.label}: ${item.quantity}${total}`
+  })
+}
+
+function getTicketTypePrice(product: ProductRow, typeId: string | undefined) {
+  if (typeId && typeof product.ticket_type_prices?.[typeId] === "number") {
+    return Number(product.ticket_type_prices[typeId])
+  }
+
+  return Number(product.price)
+}
+
+function priceTicketBreakdown(product: ProductRow, breakdown: ReturnType<typeof normalizeTicketBreakdown>) {
+  return breakdown.map((item) => {
+    const unitPrice = getTicketTypePrice(product, item.id)
+
+    return {
+      ...item,
+      unitPrice,
+      totalPrice: Number((unitPrice * item.quantity).toFixed(2)),
+    }
+  })
 }
 
 function parseProductTitleWithTicketBreakdown(title: string) {
@@ -270,7 +295,7 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
   }
 
   const productRows = await supabaseRequest<ProductRow[]>(
-    `products?select=id,title,price,category&id=${eqFilter(productId)}&is_active=eq.true&limit=1`,
+    `products?select=id,title,price,ticket_type_prices,category&id=${eqFilter(productId)}&is_active=eq.true&limit=1`,
   )
   const product = productRows[0]
 
@@ -279,7 +304,7 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
   }
 
   const componentRows = await supabaseRequest<ProductRow[]>(
-    `products?select=id,title,price,category&id=in.(${componentIds.join(",")})&is_active=eq.true`,
+    `products?select=id,title,price,ticket_type_prices,category&id=in.(${componentIds.join(",")})&is_active=eq.true`,
   )
   const componentsById = new Map(componentRows.map((row) => [row.id, row]))
   const requiresTime = (component: ProductRow | undefined) => component?.category !== "River Cruise"
@@ -294,15 +319,42 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
     throw new Error("Missing required combo schedule fields.")
   }
 
+  if (schedule.some((item) => item.ticketBreakdown.reduce((sum, ticketType) => sum + ticketType.quantity, 0) <= 0)) {
+    throw new Error("Missing required ticket type quantities.")
+  }
+
   if (!options.skipAvailabilityCheck) {
     await assertScheduleIsAvailable(schedule)
+  }
+
+  const pricedSchedule = schedule.map((item) => {
+    const component = componentsById.get(item.productId)
+
+    return {
+      ...item,
+      ticketBreakdown: component ? priceTicketBreakdown(component, item.ticketBreakdown) : item.ticketBreakdown,
+    }
+  })
+  const totalPrice = Number(
+    pricedSchedule
+      .reduce(
+        (sum, item) =>
+          sum + item.ticketBreakdown.reduce((itemSum, ticketType) => itemSum + (ticketType.totalPrice ?? 0), 0),
+        0,
+      )
+      .toFixed(2),
+  )
+
+  if (totalPrice <= 0) {
+    throw new Error("Invalid ticket type pricing.")
   }
 
   return {
     product,
     componentIds,
     componentsById,
-    schedule,
+    schedule: pricedSchedule,
+    totalPrice,
     orderInput: {
       productId,
       visitDate,
@@ -311,8 +363,8 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
       customerEmail,
       customerPhone: customerPhone ?? undefined,
       locale,
-      ticketBreakdown: normalizeTicketBreakdown(input.ticketBreakdown),
-      items: schedule,
+      ticketBreakdown: pricedSchedule.find((item) => item.productId === productId)?.ticketBreakdown ?? normalizeTicketBreakdown(input.ticketBreakdown),
+      items: pricedSchedule,
     },
   }
 }
@@ -322,7 +374,7 @@ export async function prepareCheckoutOrder(input: CreateOrderInput): Promise<Pre
 
   return {
     productTitle: prepared.product.title,
-    totalPrice: Number(prepared.product.price),
+    totalPrice: prepared.totalPrice,
     customerEmail: prepared.orderInput.customerEmail,
     orderInput: prepared.orderInput,
   }
@@ -333,7 +385,7 @@ export async function createOrder(input: CreateOrderInput) {
 
   try {
     const prepared = await prepareOrder(input, { skipAvailabilityCheck: true })
-    const { product, componentIds, componentsById, schedule, orderInput } = prepared
+    const { product, componentIds, componentsById, schedule, orderInput, totalPrice } = prepared
 
     const orderVisitTime = orderInput.visitTime || "10:00"
     const [order] = await supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
@@ -346,7 +398,7 @@ export async function createOrder(input: CreateOrderInput) {
         customer_name: orderInput.customerName,
         customer_email: orderInput.customerEmail,
         customer_phone: orderInput.customerPhone ?? null,
-        total_price: product.price,
+        total_price: totalPrice,
         locale: orderInput.locale ?? "en",
       },
       prefer: "return=representation",
@@ -358,7 +410,6 @@ export async function createOrder(input: CreateOrderInput) {
     const orderedComponents = componentIds
       .map((componentId) => componentsById.get(componentId))
       .filter((component): component is ProductRow => Boolean(component))
-    const itemPrices = allocateItemPrices(Number(product.price), orderedComponents)
 
     await supabaseRequest("order_items", {
       method: "POST",
@@ -369,7 +420,10 @@ export async function createOrder(input: CreateOrderInput) {
         ticket_breakdown: schedule.find((item) => item.productId === component.id)?.ticketBreakdown ?? [],
         parent_product_id: product.id,
         sort_order: index,
-        item_price: itemPrices[index],
+        item_price:
+          schedule
+            .find((item) => item.productId === component.id)
+            ?.ticketBreakdown.reduce((sum, ticketType) => sum + (ticketType.totalPrice ?? 0), 0) ?? 0,
         visit_date: schedule.find((item) => item.productId === component.id)?.visitDate ?? orderInput.visitDate,
         visit_time: schedule.find((item) => item.productId === component.id)?.visitTime || null,
       })),
@@ -380,7 +434,7 @@ export async function createOrder(input: CreateOrderInput) {
       orderId,
       orderNumber: formatOrderNumber(orderNumber),
       productTitle: product.title,
-      totalPrice: Number(product.price),
+      totalPrice,
       currency: "EUR",
       customerEmail: orderInput.customerEmail,
     }

@@ -12,6 +12,7 @@ export interface Product {
   duration: string
   highlights: string[]
   price: number
+  ticketTypePrices?: Record<string, number>
   originalPrice?: number
   badge: ProductBadge
   category: ProductCategory
@@ -26,6 +27,7 @@ interface ProductRow {
   duration: string
   highlights: string[] | null
   price: string
+  ticket_type_prices: Record<string, number> | null
   original_price: string | null
   badge: ProductBadge
   category: ProductCategory
@@ -47,6 +49,7 @@ function mapProduct(row: ProductRow): Product {
     duration: row.duration,
     highlights: row.highlights ?? [],
     price: Number(row.price),
+    ticketTypePrices: row.ticket_type_prices ?? undefined,
     originalPrice: row.original_price ? Number(row.original_price) : undefined,
     badge: row.badge,
     category: row.category,
@@ -55,7 +58,7 @@ function mapProduct(row: ProductRow): Product {
 
 export async function getProducts() {
   const rows = await supabaseRequest<ProductRow[]>(
-    "products?select=id,title,subtitle,image,images,duration,highlights,price,original_price,badge,category&is_active=eq.true&order=sort_order.asc,id.asc",
+    "products?select=id,title,subtitle,image,images,duration,highlights,price,ticket_type_prices,original_price,badge,category&is_active=eq.true&order=sort_order.asc,id.asc",
   )
 
   return rows.map(mapProduct)
@@ -67,11 +70,12 @@ export async function getAvailabilityProducts() {
   )
 }
 
-export async function updateProductPricing(id: string, price: number) {
+export async function updateProductPricing(id: string, price: number, ticketTypePrices?: Record<string, number>) {
   await supabaseRequest(`products?id=${eqFilter(id)}`, {
     method: "PATCH",
     body: {
       price,
+      ...(ticketTypePrices ? { ticket_type_prices: ticketTypePrices } : {}),
       updated_at: new Date().toISOString(),
     },
     prefer: "return=minimal",

@@ -24,6 +24,7 @@ export interface Ticket {
   duration: string
   highlights: string[]
   price: number
+  ticketTypePrices?: Record<string, number>
   originalPrice?: number
   badge: "bestseller" | "popular" | "best-value" | null
   category: "Entry Ticket" | "River Cruise" | "Combo Ticket"
@@ -358,7 +359,13 @@ export function TicketGrid({
   const selectedComponents = selectedComponentIds
     .map((productId) => translatedTickets.find((ticket) => ticket.id === productId))
     .filter((ticket): ticket is DisplayTicket => Boolean(ticket))
-    .map((ticket) => ({ id: ticket.id, title: ticket.title, category: ticket.category }))
+    .map((ticket) => ({
+      id: ticket.id,
+      title: ticket.title,
+      price: ticket.price,
+      ticketTypePrices: ticket.ticketTypePrices,
+      category: ticket.category,
+    }))
   const selectedAvailability = selectedTicket
     ? mergeAvailability(selectedComponentIds.map((productId) => availability[productId]))
     : undefined
@@ -449,6 +456,7 @@ export function TicketGrid({
                         id: selectedTicket.id,
                         title: t.products[selectedTicket.id]?.title ?? selectedTicket.title,
                         price: selectedTicket.price,
+                        ticketTypePrices: selectedTicket.ticketTypePrices,
                         category: selectedTicket.category,
                       }
                     : null

@@ -71,11 +71,14 @@ interface DateSelectorProps {
     id: string
     title: string
     price: number
+    ticketTypePrices?: Record<string, number>
     category: "Entry Ticket" | "River Cruise" | "Combo Ticket"
   } | null
   selectedComponents?: Array<{
     id: string
     title: string
+    price: number
+    ticketTypePrices?: Record<string, number>
     category: "Entry Ticket" | "River Cruise" | "Combo Ticket"
   }>
   selectedTime: string
@@ -247,10 +250,16 @@ export function DateSelector({
   }
 
   const getTicketBreakdown = (productId: string): TicketBreakdownItem[] => {
+    const product =
+      selectedTicket?.id === productId
+        ? selectedTicket
+        : selectedComponents.find((component) => component.id === productId)
+
     return getTicketTypeOptions(productId, locale).map((option) => ({
       id: option.id,
       label: option.label,
       quantity: getTicketTypeQuantity(productId, option.id),
+      unitPrice: product?.ticketTypePrices?.[option.id] ?? product?.price ?? 0,
     }))
   }
 

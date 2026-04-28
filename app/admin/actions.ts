@@ -10,6 +10,7 @@ import {
 } from "@/lib/availability"
 import { updateOrderItemFlag } from "@/lib/orders"
 import { updateProductPricing } from "@/lib/products"
+import { getTicketTypeOptions, hasTicketTypeOptions } from "@/lib/ticket-types"
 import {
   clearAdminSession,
   isAdminAuthenticated,
@@ -63,7 +64,16 @@ export async function updateProductPrice(formData: FormData) {
     throw new Error("Missing product id")
   }
 
-  await updateProductPricing(id, parsePrice(formData.get("price"), "Price"))
+  const ticketTypePrices = hasTicketTypeOptions(id)
+    ? Object.fromEntries(
+        getTicketTypeOptions(id).map((option) => [
+          option.id,
+          parsePrice(formData.get(`ticketTypePrice:${option.id}`), option.label),
+        ]),
+      )
+    : undefined
+
+  await updateProductPricing(id, parsePrice(formData.get("price"), "Price"), ticketTypePrices)
 
   revalidatePath("/")
   revalidatePath("/admin")

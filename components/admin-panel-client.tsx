@@ -10,6 +10,7 @@ import { AdminThemeToggle } from "@/components/admin-theme-toggle"
 import type { ProductAvailability } from "@/lib/availability"
 import type { Product, ProductCategory } from "@/lib/products"
 import type { AdminOrderLine } from "@/lib/orders"
+import { getTicketTypeOptions, hasTicketTypeOptions } from "@/lib/ticket-types"
 
 type AdminTab = "products" | "availability" | "orders" | "users"
 
@@ -287,7 +288,7 @@ export function AdminPanelClient({
                       await updateProductPrice(formData)
                       await loadTab("products", { force: true })
                     }}
-                    className="grid gap-4 px-5 py-4 md:grid-cols-[64px_1fr_180px_90px] md:items-center"
+                    className="grid gap-4 px-5 py-4 md:grid-cols-[64px_1fr_220px_90px] md:items-start"
                   >
                     <input type="hidden" name="id" value={product.id} />
                     <div className="relative h-14 w-16 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
@@ -311,22 +312,47 @@ export function AdminPanelClient({
                       <h3 className="truncate font-medium">{product.title}</h3>
                       <p className="truncate text-sm text-slate-500 dark:text-slate-400">{product.subtitle}</p>
                     </div>
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Price
-                      </span>
-                      <div className="flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 focus-within:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:focus-within:border-slate-500">
-                        <input
-                          name="price"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          defaultValue={product.price.toFixed(2)}
-                          className="w-full bg-transparent font-medium outline-none"
-                        />
-                        <span className="text-xs text-slate-400">EUR</span>
-                      </div>
-                    </label>
+                    <div className="space-y-3">
+                      <label className="block">
+                        <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Base price
+                        </span>
+                        <div className="flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 focus-within:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:focus-within:border-slate-500">
+                          <input
+                            name="price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            defaultValue={product.price.toFixed(2)}
+                            className="w-full bg-transparent font-medium outline-none"
+                          />
+                          <span className="text-xs text-slate-400">EUR</span>
+                        </div>
+                      </label>
+                      {hasTicketTypeOptions(product.id) && (
+                        <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+                          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                            Ticket type prices
+                          </p>
+                          {getTicketTypeOptions(product.id).map((option) => (
+                            <label key={option.id} className="block">
+                              <span className="mb-1 block text-xs text-slate-500 dark:text-slate-400">{option.label}</span>
+                              <div className="flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 focus-within:border-slate-400 dark:border-slate-700 dark:bg-slate-900">
+                                <input
+                                  name={`ticketTypePrice:${option.id}`}
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  defaultValue={(product.ticketTypePrices?.[option.id] ?? product.price).toFixed(2)}
+                                  className="w-full bg-transparent text-sm font-medium outline-none"
+                                />
+                                <span className="text-xs text-slate-400">EUR</span>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <button
                       type="submit"
                       className="h-10 rounded-lg bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"

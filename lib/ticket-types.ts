@@ -9,6 +9,8 @@ export type TicketBreakdownItem = {
   id?: string
   label: string
   quantity: number
+  unitPrice?: number
+  totalPrice?: number
 }
 
 const EN_DEFAULT_TICKET_TYPE_OPTIONS: TicketTypeOption[] = [
@@ -26,6 +28,8 @@ const EN_TICKET_TYPE_OPTIONS_BY_PRODUCT: Record<string, TicketTypeOption[]> = {
     { id: "small-children-under-4", label: "Small children (Younger than 4 years old)" },
   ],
 }
+
+const TICKET_TYPE_PRODUCT_IDS = Object.keys(EN_TICKET_TYPE_OPTIONS_BY_PRODUCT)
 
 const TICKET_TYPE_LABELS: Record<Locale, Record<string, string>> = {
   en: {
@@ -75,4 +79,8 @@ export function getTicketTypeOptions(productId: string, locale: Locale = "en") {
     ...option,
     label: TICKET_TYPE_LABELS[locale][option.id] ?? option.label,
   }))
+}
+
+export function hasTicketTypeOptions(productId: string) {
+  return TICKET_TYPE_PRODUCT_IDS.includes(productId)
 }
