@@ -6,10 +6,10 @@ import { useLanguage } from "@/components/language-provider"
 
 export function Footer() {
   const { t } = useLanguage()
-  const legalHrefs = ["/privacy-policy", "/terms-of-service", "/cancellation-policy", "/cookie-policy"] as const
+  const legalHrefs = ["/privacy-policy", "/terms-of-service", "/cookie-policy"] as const
   const footerLinks = {
     tickets: t.footer.links.tickets.map((label) => ({ label, href: "#tickets" })),
-    legal: t.footer.links.legal.map((label, index) => ({
+    legal: t.footer.links.legal.filter((_, index) => index !== 2).map((label, index) => ({
       label,
       href: legalHrefs[index] ?? "/",
     })),
@@ -30,8 +30,8 @@ export function Footer() {
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold leading-tight text-white">PARIS TICKETS</span>
-                <span className="text-[8px] tracking-[0.15em] text-white/50">BY fil the szánshájn</span>
+                <span className="text-lg font-bold leading-tight text-white">PARIS TOURS</span>
+                <span className="text-[8px] tracking-[0.15em] text-white/50">By ParisTourPass.com</span>
               </div>
             </Link>
             <p className="mb-6 text-sm leading-relaxed text-white/60">
@@ -108,17 +108,17 @@ export function Footer() {
               <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#f2cb73]">Disclaimer</p>
             </div>
             <p className="mt-3 text-sm leading-6 text-white/90">
-            This website (website.com) operates as an independent provider of tourist services and is not affiliated
-            with, sponsored by, authorized by, or operated by the Louvre Museum or any of its official managing
-            entities. Our purpose is to enhance the visitor experience by offering independent services, including
-            valid and official admission tickets and supplementary digital content such as audio guides. Ticket
-            Validity: All tickets offered on this website are genuine and officially valid, procured through
+            This website (paristourpass.com) operates as an independent provider of tourist services and is not
+            affiliated with, sponsored by, authorized by, or operated by the Louvre Museum or any of its official
+            managing entities. Our purpose is to enhance the visitor experience by offering independent services,
+            including valid and official admission tickets and supplementary digital content such as audio guides.
+            Ticket Validity: All tickets offered on this website are genuine and officially valid, procured through
             authorized distribution channels. Pricing: Our listed prices may incorporate additional costs covering
             management fees, early availability access, dedicated customer service, and the provision of digital
             materials. Trademarks: Trademarks, logos, and official names of the monuments mentioned are the exclusive
             property of their respective owners. They are used strictly for descriptive purposes only, with no intent
-            to cause confusion or claim ownership. Operated by TourCierge s. r. o, Karpatské námestie 10A 831 06
-            Bratislava - mestská časť Rača, Slovakia.
+            to cause confusion or claim ownership. Operated by Puskár Gábor EV, Budapest Baross Tér 11/c, Pf 72,
+            Hungary, Tax number: 57632778-1-36.
             </p>
           </div>
         </div>
@@ -144,7 +144,7 @@ export function Footer() {
           </div>
 
           <p className="text-xs text-white/40">
-            &copy; {new Date().getFullYear()} Paris Tickets by fil the szánshájn. {t.footer.rights}
+            &copy; {new Date().getFullYear()} Paris Tickets by ParisTourPass.com. {t.footer.rights}
           </p>
         </div>
       </div>

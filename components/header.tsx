@@ -21,11 +21,11 @@ const navLabels = {
 } as const
 
 const brandTagline = {
-  en: "BY fil the szánshájn",
-  fr: "PAR fil the szánshájn",
-  de: "VON fil the szánshájn",
-  es: "POR fil the szánshájn",
-  it: "DI fil the szánshájn",
+  en: "By ParisTourPass.com",
+  fr: "By ParisTourPass.com",
+  de: "By ParisTourPass.com",
+  es: "By ParisTourPass.com",
+  it: "By ParisTourPass.com",
 } as const
 
 const getNavLabel = (labels: ReturnType<typeof useLanguage>["t"]["nav"], key: keyof typeof navLabels) =>
@@ -87,7 +87,7 @@ export function Header() {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold leading-tight tracking-tight text-[#1a365d]">PARIS TICKETS</span>
+              <span className="text-lg font-bold leading-tight tracking-tight text-[#1a365d]">PARIS TOURS</span>
               <span className="text-[9px] tracking-[0.2em] text-gray-400">{brandTagline[locale]}</span>
             </div>
           </Link>
