@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, X, Phone } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useLanguage } from "@/components/language-provider"
 
@@ -66,11 +66,6 @@ export function Header() {
       {/* Top bar */}
       <div className="hidden bg-[#1a365d] py-1.5 sm:block">
         <div className="mx-auto flex max-w-7xl items-center justify-end gap-4 px-4 sm:px-6 lg:px-8">
-          <a href="tel:+33123456789" className="flex items-center gap-1.5 text-xs text-white/80 transition-colors hover:text-white">
-            <Phone className="h-3 w-3" />
-            +33 1 23 45 67 89
-          </a>
-          <span className="text-xs text-white/60">|</span>
           <LanguageSwitcher />
         </div>
       </div>

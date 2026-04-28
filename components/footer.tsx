@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Mail, Phone, TriangleAlert } from "lucide-react"
+import { Mail, TriangleAlert } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 
 export function Footer() {
@@ -64,18 +64,11 @@ export function Footer() {
               </h3>
               <div className="space-y-3 text-sm text-white/60">
                 <a
-                  href="mailto:info@paristickets.com"
+                  href="mailto:info@paristourpass.com"
                   className="flex items-center gap-2.5 transition-colors hover:text-white"
                 >
                   <Mail className="h-4 w-4" />
-                  info@paristickets.com
-                </a>
-                <a
-                  href="tel:+33123456789"
-                  className="flex items-center gap-2.5 transition-colors hover:text-white"
-                >
-                  <Phone className="h-4 w-4" />
-                  +33 1 23 45 67 89
+                  info@paristourpass.com
                 </a>
               </div>
             </div>
