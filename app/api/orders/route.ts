@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prepareCheckoutOrder } from "@/lib/orders"
 import { createCheckoutSession } from "@/lib/stripe-checkout"
+import { isLocale } from "@/lib/i18n"
 
 export const runtime = "nodejs"
 export const preferredRegion = "fra1"
@@ -12,10 +13,21 @@ interface OrderRequestBody {
   customerName?: string
   customerEmail?: string
   customerPhone?: string
+  locale?: string
+  ticketBreakdown?: Array<{
+    id?: string
+    label?: string
+    quantity?: number
+  }>
   items?: Array<{
     productId?: string
     visitDate?: string
     visitTime?: string
+    ticketBreakdown?: Array<{
+      id?: string
+      label?: string
+      quantity?: number
+    }>
   }>
 }
 
@@ -30,10 +42,21 @@ export async function POST(request: Request) {
       customerName: body.customerName ?? "",
       customerEmail: body.customerEmail ?? "",
       customerPhone: body.customerPhone,
+      locale: isLocale(body.locale) ? body.locale : "en",
+      ticketBreakdown: body.ticketBreakdown?.map((item) => ({
+        id: item.id ?? "",
+        label: item.label ?? "",
+        quantity: item.quantity ?? 0,
+      })),
       items: body.items?.map((item) => ({
         productId: item.productId ?? "",
         visitDate: item.visitDate ?? "",
         visitTime: item.visitTime ?? "",
+        ticketBreakdown: item.ticketBreakdown?.map((breakdownItem) => ({
+          id: breakdownItem.id ?? "",
+          label: breakdownItem.label ?? "",
+          quantity: breakdownItem.quantity ?? 0,
+        })),
       })),
     })
     const origin = request.headers.get("origin") ?? new URL(request.url).origin

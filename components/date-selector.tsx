@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/language-provider"
 import { isPastBookingSlot } from "@/lib/booking-time"
 import { getTimeSlotsForProduct } from "@/lib/time-slots"
+import { getTicketTypeOptions, type TicketBreakdownItem, type TicketTypeOption } from "@/lib/ticket-types"
 import type { ProductAvailability } from "@/lib/availability"
 
 function formatDateKey(date: Date) {
@@ -14,6 +15,53 @@ function formatDateKey(date: Date) {
   const day = String(date.getDate()).padStart(2, "0")
 
   return `${year}-${month}-${day}`
+}
+
+function TicketTypeSelector({
+  productId,
+  options,
+  getQuantity,
+  onQuantityChange,
+  showError,
+  title,
+  errorMessage,
+}: {
+  productId: string
+  options: TicketTypeOption[]
+  getQuantity: (productId: string, typeId: string) => number
+  onQuantityChange: (productId: string, typeId: string, value: string) => void
+  showError: boolean
+  title: string
+  errorMessage: string
+}) {
+  return (
+    <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3">
+      <p className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">
+        {title}
+      </p>
+      <div className="space-y-2">
+        {options.map((option) => (
+          <label key={option.id} className="flex items-center justify-between gap-3 text-sm text-gray-700">
+            <span className="min-w-0 flex-1">{option.label}</span>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              inputMode="numeric"
+              value={getQuantity(productId, option.id)}
+              onChange={(event) => onQuantityChange(productId, option.id, event.target.value)}
+              className="h-9 w-16 rounded-lg border border-gray-200 bg-white px-2 text-center text-sm font-semibold text-[#1a365d] outline-none transition-all focus:border-[#d4a853] focus:ring-2 focus:ring-[#d4a853]/30"
+            />
+          </label>
+        ))}
+      </div>
+      {showError && (
+        <p className="mt-2 text-xs font-medium text-red-500">
+          {errorMessage}
+        </p>
+      )}
+    </div>
+  )
 }
 
 interface DateSelectorProps {
@@ -60,6 +108,7 @@ export function DateSelector({
     Record<string, { visitDate: string; visitTime: string }>
   >({})
   const [comboMonths, setComboMonths] = React.useState<Record<string, Date>>({})
+  const [ticketQuantities, setTicketQuantities] = React.useState<Record<string, Record<string, number>>>({})
   const isComboSelection = selectedComponents.length > 1
   const isSelectedCruise = selectedTicket?.category === "River Cruise"
   const selectedTicketTimeSlots = selectedTicket ? getTimeSlotsForProduct(selectedTicket.id) : []
@@ -186,6 +235,38 @@ export function DateSelector({
     return category !== "River Cruise"
   }
 
+  const getTicketTypeQuantity = (productId: string, typeId: string) => {
+    return ticketQuantities[productId]?.[typeId] ?? 0
+  }
+
+  const getTicketTypeTotal = (productId: string) => {
+    return getTicketTypeOptions(productId, locale).reduce(
+      (total, option) => total + getTicketTypeQuantity(productId, option.id),
+      0,
+    )
+  }
+
+  const getTicketBreakdown = (productId: string): TicketBreakdownItem[] => {
+    return getTicketTypeOptions(productId, locale).map((option) => ({
+      id: option.id,
+      label: option.label,
+      quantity: getTicketTypeQuantity(productId, option.id),
+    }))
+  }
+
+  const updateTicketTypeQuantity = (productId: string, typeId: string, value: string) => {
+    const quantity = Math.max(0, Math.floor(Number(value) || 0))
+    setTicketQuantities((current) => ({
+      ...current,
+      [productId]: {
+        ...(current[productId] ?? {}),
+        [typeId]: quantity,
+      },
+    }))
+    setSubmitAttempted(false)
+    setSubmitError(null)
+  }
+
   const getComboMonth = (productId: string) => {
     const scheduledDate = comboSchedule[productId]?.visitDate
 
@@ -261,8 +342,14 @@ export function DateSelector({
         })
       : !!selectedDate &&
         (isSelectedCruise || (!!selectedTime && !isUnavailablePastSlot(selectedDateKey, selectedTime))))
+  const hasCompleteTicketBreakdown =
+    !!selectedTicket &&
+    (isComboSelection
+      ? selectedComponents.every((component) => getTicketTypeTotal(component.id) > 0)
+      : getTicketTypeTotal(selectedTicket.id) > 0)
   const canCompletePurchase =
     hasCompleteSelection &&
+    hasCompleteTicketBreakdown &&
     hasFullName &&
     isEmailValid &&
     doEmailsMatch
@@ -280,6 +367,7 @@ export function DateSelector({
     if (
       !canCompletePurchase ||
       !selectedTicket ||
+      !hasCompleteTicketBreakdown ||
       (!isComboSelection && (!selectedDateKey || (!isSelectedCruise && !selectedTime))) ||
       (isComboSelection &&
         (!firstComboSchedule?.visitDate ||
@@ -303,6 +391,8 @@ export function DateSelector({
           customerName: fullName,
           customerEmail: email,
           customerPhone: phoneNumber,
+          locale,
+          ticketBreakdown: isComboSelection ? undefined : getTicketBreakdown(selectedTicket.id),
           items: isComboSelection
             ? selectedComponents.map((component) => ({
                 productId: component.id,
@@ -311,6 +401,7 @@ export function DateSelector({
                   component.category === "River Cruise"
                     ? ""
                     : comboSchedule[component.id]?.visitTime,
+                ticketBreakdown: getTicketBreakdown(component.id),
               }))
             : undefined,
         }),
@@ -560,6 +651,17 @@ export function DateSelector({
             {t.booking.dayPassCruise}
           </p>
         )}
+        {selectedTicket && (
+          <TicketTypeSelector
+            productId={selectedTicket.id}
+            options={getTicketTypeOptions(selectedTicket.id, locale)}
+            getQuantity={getTicketTypeQuantity}
+            onQuantityChange={updateTicketTypeQuantity}
+            showError={submitAttempted && !hasCompleteTicketBreakdown}
+            title={t.booking.ticketTypes}
+            errorMessage={t.booking.ticketTypeError}
+          />
+        )}
         </>
         )}
 
@@ -695,6 +797,15 @@ export function DateSelector({
                       </div>
                     )}
                   </div>
+                  <TicketTypeSelector
+                    productId={component.id}
+                    options={getTicketTypeOptions(component.id, locale)}
+                    getQuantity={getTicketTypeQuantity}
+                    onQuantityChange={updateTicketTypeQuantity}
+                    showError={submitAttempted && getTicketTypeTotal(component.id) === 0}
+                    title={t.booking.ticketTypes}
+                    errorMessage={t.booking.ticketTypeError}
+                  />
                 </div>
               )
             })}
@@ -800,7 +911,7 @@ export function DateSelector({
             type="button"
             onClick={handleOrderSubmit}
             className="mt-2 w-full rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-700 hover:shadow-md disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
-            disabled={!hasCompleteSelection || isSubmitting}
+            disabled={!hasCompleteSelection || !hasCompleteTicketBreakdown || isSubmitting}
           >
             {isSubmitting ? t.booking.submitting : t.booking.completePurchase}
           </button>

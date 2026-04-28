@@ -1,6 +1,7 @@
 import { getProductComponentIds } from "@/lib/product-components"
 import { eqFilter, supabaseRequest } from "@/lib/supabase-rest"
 import { isPastBookingDate, isPastBookingSlot } from "@/lib/booking-time"
+import type { Locale } from "@/lib/i18n"
 
 export interface CreateOrderInput {
   productId: string
@@ -9,10 +10,21 @@ export interface CreateOrderInput {
   customerName: string
   customerEmail: string
   customerPhone?: string
+  locale?: Locale
+  ticketBreakdown?: Array<{
+    id?: string
+    label: string
+    quantity: number
+  }>
   items?: Array<{
     productId: string
     visitDate: string
     visitTime: string
+    ticketBreakdown?: Array<{
+      id?: string
+      label: string
+      quantity: number
+    }>
   }>
   stripeCheckoutSessionId?: string
 }
@@ -44,6 +56,7 @@ export interface AdminOrderLine {
   createdAt: string
   sentOut: boolean
   writtenOut: boolean
+  ticketBreakdown: string[]
 }
 
 interface ProductRow {
@@ -59,6 +72,7 @@ interface OrderLineRow {
   order_item_id: string
   product_id: string
   product_title: string
+  ticket_breakdown: TicketBreakdownRow[] | null
   parent_product_id: string
   selected_product_id: string
   selected_product_title: string
@@ -144,6 +158,34 @@ function formatOrderNumber(orderNumber: number) {
   return String(orderNumber).padStart(5, "0")
 }
 
+const TICKET_BREAKDOWN_TITLE_SEPARATOR = "\nTicket types:\n"
+type TicketBreakdownRow = NonNullable<CreateOrderInput["ticketBreakdown"]>[number]
+
+function normalizeTicketBreakdown(
+  breakdown: CreateOrderInput["ticketBreakdown"],
+) {
+  return (breakdown ?? [])
+    .map((item) => ({
+      id: item.id ? normalize(item.id) : undefined,
+      label: normalize(item.label),
+      quantity: Math.max(0, Math.floor(Number(item.quantity) || 0)),
+    }))
+    .filter((item) => item.label)
+}
+
+function formatTicketBreakdownLines(breakdown: ReturnType<typeof normalizeTicketBreakdown>) {
+  return breakdown.map((item) => `${item.label}: ${item.quantity}`)
+}
+
+function parseProductTitleWithTicketBreakdown(title: string) {
+  const [cleanTitle, details] = title.split(TICKET_BREAKDOWN_TITLE_SEPARATOR)
+
+  return {
+    title: cleanTitle,
+    ticketBreakdown: details ? details.split("\n").filter(Boolean) : [],
+  }
+}
+
 function allocateItemPrices(totalPrice: number, components: ProductRow[]) {
   if (components.length === 0) return []
   if (components.length === 1) return [Number(totalPrice.toFixed(2))]
@@ -207,17 +249,20 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
   const customerName = normalize(input.customerName)
   const customerEmail = normalize(input.customerEmail).toLowerCase()
   const customerPhone = input.customerPhone ? normalize(input.customerPhone) : null
+  const locale = input.locale ?? "en"
   const componentIds = getProductComponentIds(productId)
   const schedule = input.items?.length
     ? input.items.map((item) => ({
         productId: normalize(item.productId),
         visitDate: normalize(item.visitDate),
         visitTime: normalize(item.visitTime),
+        ticketBreakdown: normalizeTicketBreakdown(item.ticketBreakdown),
       }))
     : componentIds.map((componentId) => ({
         productId: componentId,
         visitDate,
         visitTime,
+        ticketBreakdown: normalizeTicketBreakdown(input.ticketBreakdown),
       }))
 
   if (!productId || !visitDate || !customerName || !customerEmail) {
@@ -265,6 +310,8 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
       customerName,
       customerEmail,
       customerPhone: customerPhone ?? undefined,
+      locale,
+      ticketBreakdown: normalizeTicketBreakdown(input.ticketBreakdown),
       items: schedule,
     },
   }
@@ -300,7 +347,7 @@ export async function createOrder(input: CreateOrderInput) {
         customer_email: orderInput.customerEmail,
         customer_phone: orderInput.customerPhone ?? null,
         total_price: product.price,
-        locale: "en",
+        locale: orderInput.locale ?? "en",
       },
       prefer: "return=representation",
     })
@@ -319,6 +366,7 @@ export async function createOrder(input: CreateOrderInput) {
         order_id: orderId,
         product_id: component.id,
         product_title: component.title,
+        ticket_breakdown: schedule.find((item) => item.productId === component.id)?.ticketBreakdown ?? [],
         parent_product_id: product.id,
         sort_order: index,
         item_price: itemPrices[index],
@@ -401,7 +449,7 @@ export async function getAdminOrders(searchQuery = "") {
   const ordersById = new Map(orders.map((order) => [order.id, order]))
   const orderIdFilter = orders.map((order) => order.id).join(",")
   const rows = await supabaseRequest<RestOrderItemRow[]>(
-    `order_items?select=id,order_id,product_id,product_title,parent_product_id,visit_date,visit_time,item_price,sent_out,written_out,sort_order&order_id=in.(${orderIdFilter})&order=sort_order.asc`,
+    `order_items?select=id,order_id,product_id,product_title,ticket_breakdown,parent_product_id,visit_date,visit_time,item_price,sent_out,written_out,sort_order&order_id=in.(${orderIdFilter})&order=sort_order.asc`,
   )
 
   return rows
@@ -426,27 +474,35 @@ export async function getAdminOrders(searchQuery = "") {
       return createdAtDiff || left.item.sort_order - right.item.sort_order
     })
     .slice(0, 100)
-    .map<AdminOrderLine>(({ item, order }) => ({
-    orderId: order.id,
-    orderNumber: formatOrderNumber(order.order_number),
-    orderItemId: item.id,
-    productId: item.product_id,
-    productTitle: item.product_title,
-    selectedProductTitle: order.selected_product_title,
-    isCombo: item.parent_product_id !== item.product_id || order.selected_product_id !== item.product_id,
-    visitDate: (item.visit_date ?? order.visit_date).slice(0, 10),
-    visitTime: item.visit_time ?? order.visit_time,
-    customerName: order.customer_name,
-    customerEmail: order.customer_email,
-    customerPhone: order.customer_phone,
-    totalPrice: Number(order.total_price),
-    itemPrice: Number(item.item_price),
-    currency: order.currency,
-    status: order.status,
-    createdAt: order.created_at,
-    sentOut: item.sent_out,
-    writtenOut: item.written_out,
-  }))
+    .map<AdminOrderLine>(({ item, order }) => {
+      const parsedProductTitle = parseProductTitleWithTicketBreakdown(item.product_title)
+      const ticketBreakdown = item.ticket_breakdown
+        ? formatTicketBreakdownLines(item.ticket_breakdown)
+        : parsedProductTitle.ticketBreakdown
+
+      return {
+        orderId: order.id,
+        orderNumber: formatOrderNumber(order.order_number),
+        orderItemId: item.id,
+        productId: item.product_id,
+        productTitle: parsedProductTitle.title,
+        selectedProductTitle: order.selected_product_title,
+        isCombo: item.parent_product_id !== item.product_id || order.selected_product_id !== item.product_id,
+        visitDate: (item.visit_date ?? order.visit_date).slice(0, 10),
+        visitTime: item.visit_time ?? order.visit_time,
+        customerName: order.customer_name,
+        customerEmail: order.customer_email,
+        customerPhone: order.customer_phone,
+        totalPrice: Number(order.total_price),
+        itemPrice: Number(item.item_price),
+        currency: order.currency,
+        status: order.status,
+        createdAt: order.created_at,
+        sentOut: item.sent_out,
+        writtenOut: item.written_out,
+        ticketBreakdown,
+      }
+    })
 }
 
 export async function updateOrderItemFlag(

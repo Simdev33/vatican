@@ -78,6 +78,8 @@ type Dictionary = {
     submitting: string
     completePurchase: string
     redirecting: string
+    ticketTypes: string
+    ticketTypeError: string
     selectedTicket: string
     selectedDate: string
     time: string
@@ -213,6 +215,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       submitting: "Submitting...",
       completePurchase: "Complete Purchase",
       redirecting: "Order received. Redirecting to secure payment...",
+      ticketTypes: "Ticket types",
+      ticketTypeError: "Select at least one ticket type.",
       selectedTicket: "Selected ticket",
       selectedDate: "Selected date",
       time: "Time",
@@ -305,6 +309,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       submitting: "Envoi...",
       completePurchase: "Finaliser l'achat",
       redirecting: "Commande reçue. Redirection vers le paiement sécurisé...",
+      ticketTypes: "Types de billets",
+      ticketTypeError: "Sélectionnez au moins un type de billet.",
       selectedTicket: "Billet sélectionné",
       selectedDate: "Date sélectionnée",
       time: "Heure",
@@ -404,6 +410,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       submitting: "Wird gesendet...",
       completePurchase: "Kauf abschließen",
       redirecting: "Bestellung erhalten. Weiterleitung zur sicheren Zahlung...",
+      ticketTypes: "Ticketarten",
+      ticketTypeError: "Wählen Sie mindestens eine Ticketart aus.",
       selectedTicket: "Ausgewähltes Ticket",
       selectedDate: "Ausgewähltes Datum",
       time: "Uhrzeit",
@@ -503,6 +511,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       submitting: "Enviando...",
       completePurchase: "Finalizar compra",
       redirecting: "Pedido recibido. Redirigiendo al pago seguro...",
+      ticketTypes: "Tipos de entrada",
+      ticketTypeError: "Selecciona al menos un tipo de entrada.",
       selectedTicket: "Entrada seleccionada",
       selectedDate: "Fecha seleccionada",
       time: "Hora",
@@ -602,6 +612,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       submitting: "Invio...",
       completePurchase: "Completa acquisto",
       redirecting: "Ordine ricevuto. Reindirizzamento al pagamento sicuro...",
+      ticketTypes: "Tipi di biglietto",
+      ticketTypeError: "Seleziona almeno un tipo di biglietto.",
       selectedTicket: "Biglietto selezionato",
       selectedDate: "Data selezionata",
       time: "Ora",

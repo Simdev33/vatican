@@ -409,6 +409,13 @@ export function AdminPanelClient({
                       <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
                         Order ID: {order.orderNumber}
                       </p>
+                      {order.ticketBreakdown.length > 0 && (
+                        <div className="mt-2 space-y-0.5 rounded-md bg-slate-50 p-2 text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                          {order.ticketBreakdown.map((line) => (
+                            <p key={line}>{line}</p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="font-medium">{order.customerName}</p>

@@ -1,5 +1,7 @@
 import Stripe from "stripe"
 import { createOrder, type CreateOrderInput, type PreparedCheckoutOrder } from "@/lib/orders"
+import { getTicketTypeOptions, type TicketBreakdownItem } from "@/lib/ticket-types"
+import { isLocale, type Locale } from "@/lib/i18n"
 
 let stripeClient: Stripe | null = null
 
@@ -17,6 +19,44 @@ function getStripe() {
 
 function toStripeAmount(value: number) {
   return Math.round(value * 100)
+}
+
+function encodeBreakdown(productId: string, breakdown: TicketBreakdownItem[] | undefined) {
+  const quantityById = new Map((breakdown ?? []).map((item) => [item.id, item.quantity]))
+  const quantityByLabel = new Map((breakdown ?? []).map((item) => [item.label, item.quantity]))
+  const quantities = getTicketTypeOptions(productId).map((option) => quantityById.get(option.id) ?? quantityByLabel.get(option.label) ?? 0)
+
+  return quantities.join(",")
+}
+
+function encodeTicketBreakdowns(input: CreateOrderInput) {
+  if (input.items?.length) {
+    return input.items.map((item) => `${item.productId}:${encodeBreakdown(item.productId, item.ticketBreakdown)}`).join(";")
+  }
+
+  return `${input.productId}:${encodeBreakdown(input.productId, input.ticketBreakdown)}`
+}
+
+function decodeBreakdown(productId: string, encoded: string | undefined, locale: Locale) {
+  const quantities = (encoded ?? "").split(",").map((value) => Math.max(0, Math.floor(Number(value) || 0)))
+
+  return getTicketTypeOptions(productId, locale).map((option, index) => ({
+    id: option.id,
+    label: option.label,
+    quantity: quantities[index] ?? 0,
+  }))
+}
+
+function decodeTicketBreakdowns(encoded: string | undefined, locale: Locale) {
+  return new Map(
+    (encoded ?? "")
+      .split(";")
+      .filter(Boolean)
+      .map((entry) => {
+        const [productId, quantities] = entry.split(":")
+        return [productId, decodeBreakdown(productId, quantities, locale)] as const
+      }),
+  )
 }
 
 export async function createCheckoutSession(input: {
@@ -51,7 +91,11 @@ export async function createCheckoutSession(input: {
       customerName: input.order.orderInput.customerName,
       customerEmail: input.order.orderInput.customerEmail,
       customerPhone: input.order.orderInput.customerPhone ?? "",
-      items: JSON.stringify(input.order.orderInput.items ?? []),
+      locale: input.order.orderInput.locale ?? "en",
+      ticketBreakdowns: encodeTicketBreakdowns(input.order.orderInput),
+      items: JSON.stringify(
+        input.order.orderInput.items?.map(({ ticketBreakdown, ...item }) => item) ?? [],
+      ),
     },
     success_url: `${input.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${input.origin}/#tickets`,
@@ -65,6 +109,10 @@ function getOrderInputFromSession(session: Stripe.Checkout.Session): CreateOrder
     throw new Error("Stripe session is missing order details.")
   }
 
+  const locale = isLocale(metadata.locale) ? metadata.locale : "en"
+  const ticketBreakdowns = decodeTicketBreakdowns(metadata.ticketBreakdowns, locale)
+  const items = metadata.items ? JSON.parse(metadata.items) as CreateOrderInput["items"] : undefined
+
   return {
     productId: metadata.productId,
     visitDate: metadata.visitDate,
@@ -72,7 +120,12 @@ function getOrderInputFromSession(session: Stripe.Checkout.Session): CreateOrder
     customerName: metadata.customerName,
     customerEmail: metadata.customerEmail,
     customerPhone: metadata.customerPhone || undefined,
-    items: metadata.items ? JSON.parse(metadata.items) : undefined,
+    locale,
+    ticketBreakdown: ticketBreakdowns.get(metadata.productId),
+    items: items?.map((item) => ({
+      ...item,
+      ticketBreakdown: ticketBreakdowns.get(item.productId),
+    })),
   }
 }
 
