@@ -112,21 +112,21 @@ interface RestOrderRow {
   order_number: number
   selected_product_id: string
   selected_product_title: string
-  parent_product_id: string | null
-  parent_product_title: string | null
-  ticket_breakdown: TicketBreakdownRow[] | null
+  parent_product_id?: string | null
+  parent_product_title?: string | null
+  ticket_breakdown?: TicketBreakdownRow[] | null
   visit_date: string
   visit_time: string
   customer_name: string
   customer_email: string
   customer_phone: string | null
   total_price: string
-  order_total_price: string | null
+  order_total_price?: string | null
   currency: string
   status: string
   created_at: string
-  sent_out: boolean
-  written_out: boolean
+  sent_out?: boolean
+  written_out?: boolean
 }
 
 function normalize(value: string) {
@@ -246,6 +246,10 @@ function formatProductSummary(item: OrderItemSnapshot) {
     .join(", ")
 
   return counts ? `${item.productTitle}: ${counts}` : item.productTitle
+}
+
+function isMissingOrderLineColumnError(error: unknown) {
+  return error instanceof Error && error.message.includes("column orders.") && error.message.includes("does not exist")
 }
 
 async function assertProductIsAvailable(productIds: string[], visitDate: string, visitTime: string) {
@@ -441,10 +445,33 @@ export async function createOrder(input: CreateOrderInput) {
       ...(orderInput.stripeCheckoutSessionId ? { stripe_checkout_session_id: orderInput.stripeCheckoutSessionId } : {}),
       ...addTicketCounts(emptyOrderTicketCounts(), item.ticketBreakdown),
     }))
-    const insertedOrders = await supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
-      method: "POST",
-      body: orderRows,
-      prefer: "return=representation",
+    const insertedOrders = await supabaseRequest<Array<{ id: string; order_number: number }>>(
+      "orders?select=id,order_number",
+      {
+        method: "POST",
+        body: orderRows,
+        prefer: "return=representation",
+      },
+    ).catch(async (error) => {
+      if (!isMissingOrderLineColumnError(error)) {
+        throw error
+      }
+
+      return supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
+        method: "POST",
+        body: {
+          selected_product_id: product.id,
+          selected_product_title: product.title,
+          visit_date: orderInput.visitDate,
+          visit_time: orderVisitTime,
+          customer_name: orderInput.customerName,
+          customer_email: orderInput.customerEmail,
+          customer_phone: orderInput.customerPhone ?? null,
+          total_price: totalPrice,
+          locale: orderInput.locale ?? "en",
+        },
+        prefer: "return=representation",
+      })
     })
     createdOrderIds.push(...insertedOrders.map((order) => order.id))
     const firstOrder = insertedOrders[0]
@@ -517,7 +544,20 @@ export async function getAdminOrders(searchQuery = "") {
       "order=created_at.desc",
       "limit=80",
     ].join("&"),
-  )
+  ).catch((error) => {
+    if (!isMissingOrderLineColumnError(error)) {
+      throw error
+    }
+
+    return supabaseRequest<RestOrderRow[]>(
+      [
+        "orders?select=id,order_number,selected_product_id,selected_product_title,visit_date,visit_time,customer_name,customer_email,customer_phone,total_price,currency,status,created_at",
+        ...orderFilters,
+        "order=created_at.desc",
+        "limit=80",
+      ].join("&"),
+    )
+  })
 
   return orders
     .filter((order) => {
@@ -564,8 +604,8 @@ export async function getAdminOrders(searchQuery = "") {
         currency: order.currency,
         status: order.status,
         createdAt: order.created_at,
-        sentOut: order.sent_out,
-        writtenOut: order.written_out,
+        sentOut: order.sent_out ?? false,
+        writtenOut: order.written_out ?? false,
         ticketBreakdown,
       }
     })
@@ -580,5 +620,9 @@ export async function updateOrderItemFlag(
     method: "PATCH",
     body: { [field]: value },
     prefer: "return=minimal",
+  }).catch((error) => {
+    if (!isMissingOrderLineColumnError(error)) {
+      throw error
+    }
   })
 }
