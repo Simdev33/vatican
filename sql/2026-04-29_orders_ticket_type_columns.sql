@@ -9,10 +9,10 @@ add column if not exists children_4_11_count int4 not null default 0,
 add column if not exists small_children_under_4_count int4 not null default 0;
 
 comment on column public.orders.adult_count is
-  'Total adult tickets across the whole order.';
+  'Adult tickets on this order row.';
 
 comment on column public.orders.child_count is
-  'Total child tickets across the whole order.';
+  'Child tickets on this order row.';
 
 comment on column public.orders.adult_18_count is
   'Adult (18+) ticket count.';

@@ -65,9 +65,28 @@ type OrderItemSnapshot = {
   parentProductId: string
   visitDate: string
   visitTime: string | null
-  itemPrice: number
   ticketBreakdown: TicketBreakdownRow[]
 }
+
+type OrderRowInsert = {
+  selected_product_id: string
+  selected_product_title: string
+  parent_product_id: string
+  parent_product_title: string
+  visit_date: string
+  visit_time: string
+  customer_name: string
+  customer_email: string
+  customer_phone: string | null
+  total_price: number
+  order_total_price: number
+  locale: Locale
+  ticket_breakdown: TicketBreakdownRow[]
+  product_summary: string
+  sent_out: boolean
+  written_out: boolean
+  stripe_checkout_session_id?: string
+} & OrderTicketCounts
 
 type OrderTicketCounts = {
   adult_count: number
@@ -88,89 +107,26 @@ interface ProductRow {
   category: string
 }
 
-interface OrderLineRow {
-  order_id: string
-  order_number: number
-  order_item_id: string
-  product_id: string
-  product_title: string
-  ticket_breakdown: TicketBreakdownRow[] | null
-  parent_product_id: string
-  selected_product_id: string
-  selected_product_title: string
-  item_visit_date: string | null
-  item_visit_time: string | null
-  visit_date: string
-  visit_time: string
-  customer_name: string
-  customer_email: string
-  customer_phone: string | null
-  total_price: string
-  item_price: string
-  currency: string
-  status: string
-  created_at: string
-  sent_out: boolean
-  written_out: boolean
-}
-
-interface RestOrderLineRow {
-  id: string
-  product_id: string
-  product_title: string
-  parent_product_id: string
-  visit_date: string | null
-  visit_time: string | null
-  item_price: string
-  sent_out: boolean
-  written_out: boolean
-  sort_order: number
-  orders: {
-    id: string
-    order_number: number
-    selected_product_id: string
-    selected_product_title: string
-    visit_date: string
-    visit_time: string
-    customer_name: string
-    customer_email: string
-    customer_phone: string | null
-    total_price: string
-    currency: string
-    status: string
-    created_at: string
-  }
-}
-
 interface RestOrderRow {
   id: string
   order_number: number
   selected_product_id: string
   selected_product_title: string
+  parent_product_id: string | null
+  parent_product_title: string | null
+  ticket_breakdown: TicketBreakdownRow[] | null
   visit_date: string
   visit_time: string
   customer_name: string
   customer_email: string
   customer_phone: string | null
   total_price: string
+  order_total_price: string | null
   currency: string
   status: string
   created_at: string
-}
-
-interface RestOrderItemRow {
-  id: string
-  order_id: string
-  product_id: string
-  product_title: string
-  ticket_breakdown: TicketBreakdownRow[] | null
-  parent_product_id: string
-  visit_date: string | null
-  visit_time: string | null
-  item_price: string
   sent_out: boolean
   written_out: boolean
-  sort_order: number
 }
 
 function normalize(value: string) {
@@ -233,29 +189,8 @@ function parseProductTitleWithTicketBreakdown(title: string) {
   }
 }
 
-function allocateItemPrices(totalPrice: number, components: ProductRow[]) {
-  if (components.length === 0) return []
-  if (components.length === 1) return [Number(totalPrice.toFixed(2))]
-
-  const componentTotal = components.reduce((sum, component) => sum + Number(component.price), 0)
-
-  if (componentTotal <= 0) {
-    const evenPrice = Math.floor((totalPrice / components.length) * 100) / 100
-    const prices = components.map(() => evenPrice)
-    prices[prices.length - 1] = Number((totalPrice - prices.slice(0, -1).reduce((sum, price) => sum + price, 0)).toFixed(2))
-    return prices
-  }
-
-  const prices = components.map((component) =>
-    Math.floor(((Number(component.price) / componentTotal) * totalPrice) * 100) / 100,
-  )
-  prices[prices.length - 1] = Number((totalPrice - prices.slice(0, -1).reduce((sum, price) => sum + price, 0)).toFixed(2))
-
-  return prices
-}
-
-function getOrderTicketCounts(items: OrderItemSnapshot[]): OrderTicketCounts {
-  const counts: OrderTicketCounts = {
+function emptyOrderTicketCounts(): OrderTicketCounts {
+  return {
     adult_count: 0,
     child_count: 0,
     adult_18_count: 0,
@@ -265,43 +200,52 @@ function getOrderTicketCounts(items: OrderItemSnapshot[]): OrderTicketCounts {
     children_4_11_count: 0,
     small_children_under_4_count: 0,
   }
+}
 
-  for (const item of items) {
-    for (const ticketType of item.ticketBreakdown) {
-      const quantity = ticketType.quantity
+function addTicketCounts(counts: OrderTicketCounts, breakdown: TicketBreakdownRow[]) {
+  for (const ticketType of breakdown) {
+    const quantity = ticketType.quantity
 
-      if (ticketType.id === "adult-18") {
-        counts.adult_18_count += quantity
-        counts.adult_count += quantity
-      }
+    if (ticketType.id === "adult-18") {
+      counts.adult_18_count += quantity
+      counts.adult_count += quantity
+    }
 
-      if (ticketType.id === "child-under-18") {
-        counts.child_under_18_count += quantity
-        counts.child_count += quantity
-      }
+    if (ticketType.id === "child-under-18") {
+      counts.child_under_18_count += quantity
+      counts.child_count += quantity
+    }
 
-      if (ticketType.id === "adult-25") {
-        counts.adult_25_count += quantity
-        counts.adult_count += quantity
-      }
+    if (ticketType.id === "adult-25") {
+      counts.adult_25_count += quantity
+      counts.adult_count += quantity
+    }
 
-      if (ticketType.id === "young-12-24") {
-        counts.young_12_24_count += quantity
-      }
+    if (ticketType.id === "young-12-24") {
+      counts.young_12_24_count += quantity
+    }
 
-      if (ticketType.id === "children-4-11") {
-        counts.children_4_11_count += quantity
-        counts.child_count += quantity
-      }
+    if (ticketType.id === "children-4-11") {
+      counts.children_4_11_count += quantity
+      counts.child_count += quantity
+    }
 
-      if (ticketType.id === "small-children-under-4") {
-        counts.small_children_under_4_count += quantity
-        counts.child_count += quantity
-      }
+    if (ticketType.id === "small-children-under-4") {
+      counts.small_children_under_4_count += quantity
+      counts.child_count += quantity
     }
   }
 
   return counts
+}
+
+function formatProductSummary(item: OrderItemSnapshot) {
+  const counts = item.ticketBreakdown
+    .filter((ticketType) => ticketType.quantity > 0)
+    .map((ticketType) => `${ticketType.quantity} ${ticketType.label}`)
+    .join(", ")
+
+  return counts ? `${item.productTitle}: ${counts}` : item.productTitle
 }
 
 async function assertProductIsAvailable(productIds: string[], visitDate: string, visitTime: string) {
@@ -437,6 +381,7 @@ async function prepareOrder(input: CreateOrderInput, options: { skipAvailability
       locale,
       ticketBreakdown: normalizeTicketBreakdown(input.ticketBreakdown),
       items: schedule,
+      stripeCheckoutSessionId: input.stripeCheckoutSessionId,
     },
   }
 }
@@ -453,7 +398,7 @@ export async function prepareCheckoutOrder(input: CreateOrderInput): Promise<Pre
 }
 
 export async function createOrder(input: CreateOrderInput) {
-  let orderId: string | null = null
+  const createdOrderIds: string[] = []
 
   try {
     const prepared = await prepareOrder(input, { skipAvailabilityCheck: true })
@@ -463,15 +408,9 @@ export async function createOrder(input: CreateOrderInput) {
     const orderedComponents = componentIds
       .map((componentId) => componentsById.get(componentId))
       .filter((component): component is ProductRow => Boolean(component))
-    const comboItemPrices =
-      product.category === "Combo Ticket" ? allocateItemPrices(totalPrice, orderedComponents) : []
-    const orderItemSnapshots: OrderItemSnapshot[] = orderedComponents.map((component, index) => {
+    const orderItemSnapshots: OrderItemSnapshot[] = orderedComponents.map((component) => {
       const scheduleItem = schedule.find((item) => item.productId === component.id)
       const orderInputItem = orderInput.items?.find((item) => item.productId === component.id)
-      const itemPrice =
-        product.category === "Combo Ticket"
-          ? comboItemPrices[index]
-          : scheduleItem?.ticketBreakdown.reduce((sum, ticketType) => sum + ticketType.totalPrice, 0) ?? 0
 
       return {
         productId: component.id,
@@ -479,59 +418,51 @@ export async function createOrder(input: CreateOrderInput) {
         parentProductId: product.id,
         visitDate: scheduleItem?.visitDate ?? orderInput.visitDate,
         visitTime: scheduleItem?.visitTime || null,
-        itemPrice,
         ticketBreakdown: orderInputItem?.ticketBreakdown ?? [],
       }
     })
-    const orderTicketCounts = getOrderTicketCounts(orderItemSnapshots)
-
-    const [order] = await supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
+    const orderRows: OrderRowInsert[] = orderItemSnapshots.map((item) => ({
+      selected_product_id: item.productId,
+      selected_product_title: item.productTitle,
+      parent_product_id: product.id,
+      parent_product_title: product.title,
+      visit_date: item.visitDate,
+      visit_time: item.visitTime ?? orderVisitTime,
+      customer_name: orderInput.customerName,
+      customer_email: orderInput.customerEmail,
+      customer_phone: orderInput.customerPhone ?? null,
+      total_price: totalPrice,
+      order_total_price: totalPrice,
+      locale: orderInput.locale ?? "en",
+      ticket_breakdown: item.ticketBreakdown,
+      product_summary: formatProductSummary(item),
+      sent_out: false,
+      written_out: false,
+      ...(orderInput.stripeCheckoutSessionId ? { stripe_checkout_session_id: orderInput.stripeCheckoutSessionId } : {}),
+      ...addTicketCounts(emptyOrderTicketCounts(), item.ticketBreakdown),
+    }))
+    const insertedOrders = await supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
       method: "POST",
-      body: {
-        selected_product_id: product.id,
-        selected_product_title: product.title,
-        visit_date: orderInput.visitDate,
-        visit_time: orderVisitTime,
-        customer_name: orderInput.customerName,
-        customer_email: orderInput.customerEmail,
-        customer_phone: orderInput.customerPhone ?? null,
-        total_price: totalPrice,
-        locale: orderInput.locale ?? "en",
-        ...orderTicketCounts,
-        items: orderItemSnapshots,
-      },
+      body: orderRows,
       prefer: "return=representation",
     })
+    createdOrderIds.push(...insertedOrders.map((order) => order.id))
+    const firstOrder = insertedOrders[0]
 
-    orderId = order.id
-    const orderNumber = order.order_number
-
-    await supabaseRequest("order_items", {
-      method: "POST",
-      body: orderItemSnapshots.map((item, index) => ({
-        order_id: orderId,
-        product_id: item.productId,
-        product_title: item.productTitle,
-        ticket_breakdown: item.ticketBreakdown,
-        parent_product_id: item.parentProductId,
-        sort_order: index,
-        item_price: item.itemPrice,
-        visit_date: item.visitDate,
-        visit_time: item.visitTime,
-      })),
-      prefer: "return=minimal",
-    })
+    if (!firstOrder) {
+      throw new Error("Could not create order.")
+    }
 
     return {
-      orderId,
-      orderNumber: formatOrderNumber(orderNumber),
+      orderId: firstOrder.id,
+      orderNumber: formatOrderNumber(firstOrder.order_number),
       productTitle: product.title,
       totalPrice,
       currency: "EUR",
       customerEmail: orderInput.customerEmail,
     }
   } catch (error) {
-    if (orderId) {
+    for (const orderId of createdOrderIds) {
       await supabaseRequest(`orders?id=${eqFilter(orderId)}`, {
         method: "DELETE",
         prefer: "return=minimal",
@@ -581,71 +512,60 @@ export async function getAdminOrders(searchQuery = "") {
 
   const orders = await supabaseRequest<RestOrderRow[]>(
     [
-      "orders?select=id,order_number,selected_product_id,selected_product_title,visit_date,visit_time,customer_name,customer_email,customer_phone,total_price,currency,status,created_at",
+      "orders?select=id,order_number,selected_product_id,selected_product_title,parent_product_id,parent_product_title,ticket_breakdown,visit_date,visit_time,customer_name,customer_email,customer_phone,total_price,order_total_price,currency,status,created_at,sent_out,written_out",
       ...orderFilters,
       "order=created_at.desc",
       "limit=80",
     ].join("&"),
   )
 
-  if (orders.length === 0) {
-    return []
-  }
-
-  const ordersById = new Map(orders.map((order) => [order.id, order]))
-  const orderIdFilter = orders.map((order) => order.id).join(",")
-  const rows = await supabaseRequest<RestOrderItemRow[]>(
-    `order_items?select=id,order_id,product_id,product_title,ticket_breakdown,parent_product_id,visit_date,visit_time,item_price,sent_out,written_out,sort_order&order_id=in.(${orderIdFilter})&order=sort_order.asc`,
-  )
-
-  return rows
-    .map((item) => ({ item, order: ordersById.get(item.order_id) }))
-    .filter((entry): entry is { item: RestOrderItemRow; order: RestOrderRow } => Boolean(entry.order))
+  return orders
     .filter((order) => {
       if (!trimmedSearch) return true
 
       const textSearch = trimmedSearch.toLowerCase()
-      const normalizedPhone = order.order.customer_phone?.replace(/\D/g, "") ?? ""
+      const normalizedPhone = order.customer_phone?.replace(/\D/g, "") ?? ""
 
       return (
-        formatOrderNumber(order.order.order_number).includes(textSearch) ||
-        order.order.customer_name.toLowerCase().includes(textSearch) ||
-        order.order.customer_email.toLowerCase().includes(textSearch) ||
-        (order.order.customer_phone ?? "").toLowerCase().includes(textSearch) ||
+        formatOrderNumber(order.order_number).includes(textSearch) ||
+        order.customer_name.toLowerCase().includes(textSearch) ||
+        order.customer_email.toLowerCase().includes(textSearch) ||
+        (order.customer_phone ?? "").toLowerCase().includes(textSearch) ||
+        order.selected_product_title.toLowerCase().includes(textSearch) ||
         (phoneSearch && Array.from(phoneVariants).some((variant) => normalizedPhone.includes(variant)))
       )
     })
     .sort((left, right) => {
-      const createdAtDiff = Date.parse(right.order.created_at) - Date.parse(left.order.created_at)
-      return createdAtDiff || left.item.sort_order - right.item.sort_order
+      const createdAtDiff = Date.parse(right.created_at) - Date.parse(left.created_at)
+      return createdAtDiff || left.order_number - right.order_number
     })
     .slice(0, 100)
-    .map<AdminOrderLine>(({ item, order }) => {
-      const parsedProductTitle = parseProductTitleWithTicketBreakdown(item.product_title)
-      const ticketBreakdown = item.ticket_breakdown
-        ? formatTicketBreakdownLines(item.ticket_breakdown)
+    .map<AdminOrderLine>((order) => {
+      const parsedProductTitle = parseProductTitleWithTicketBreakdown(order.selected_product_title)
+      const ticketBreakdown = order.ticket_breakdown
+        ? formatTicketBreakdownLines(order.ticket_breakdown)
         : parsedProductTitle.ticketBreakdown
 
       return {
         orderId: order.id,
         orderNumber: formatOrderNumber(order.order_number),
-        orderItemId: item.id,
-        productId: item.product_id,
+        orderItemId: order.id,
+        productId: order.selected_product_id,
         productTitle: parsedProductTitle.title,
-        selectedProductTitle: order.selected_product_title,
-        isCombo: item.parent_product_id !== item.product_id || order.selected_product_id !== item.product_id,
-        visitDate: (item.visit_date ?? order.visit_date).slice(0, 10),
-        visitTime: item.visit_time ?? order.visit_time,
+        selectedProductTitle: order.parent_product_title ?? order.selected_product_title,
+        isCombo: Boolean(order.parent_product_id && order.parent_product_id !== order.selected_product_id),
+        visitDate: order.visit_date.slice(0, 10),
+        visitTime: order.visit_time,
         customerName: order.customer_name,
         customerEmail: order.customer_email,
         customerPhone: order.customer_phone,
-        totalPrice: Number(order.total_price),
-        itemPrice: Number(item.item_price),
+        totalPrice: Number(order.order_total_price ?? order.total_price),
+        itemPrice: Number(order.total_price),
         currency: order.currency,
         status: order.status,
         createdAt: order.created_at,
-        sentOut: item.sent_out,
-        writtenOut: item.written_out,
+        sentOut: order.sent_out,
+        writtenOut: order.written_out,
         ticketBreakdown,
       }
     })
@@ -656,7 +576,7 @@ export async function updateOrderItemFlag(
   field: "sent_out" | "written_out",
   value: boolean,
 ) {
-  await supabaseRequest(`order_items?id=${eqFilter(orderItemId)}`, {
+  await supabaseRequest(`orders?id=${eqFilter(orderItemId)}`, {
     method: "PATCH",
     body: { [field]: value },
     prefer: "return=minimal",

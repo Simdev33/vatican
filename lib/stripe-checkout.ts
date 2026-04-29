@@ -126,6 +126,7 @@ function getOrderInputFromSession(session: Stripe.Checkout.Session): CreateOrder
       ...item,
       ticketBreakdown: ticketBreakdowns.get(item.productId),
     })),
+    stripeCheckoutSessionId: session.id,
   }
 }
 
