@@ -59,6 +59,16 @@ export interface AdminOrderLine {
   ticketBreakdown: string[]
 }
 
+type OrderItemSnapshot = {
+  productId: string
+  productTitle: string
+  parentProductId: string
+  visitDate: string
+  visitTime: string | null
+  itemPrice: number
+  ticketBreakdown: TicketBreakdownRow[]
+}
+
 interface ProductRow {
   id: string
   title: string
@@ -389,6 +399,30 @@ export async function createOrder(input: CreateOrderInput) {
     const { product, componentIds, componentsById, schedule, orderInput, totalPrice } = prepared
 
     const orderVisitTime = orderInput.visitTime || "10:00"
+    const orderedComponents = componentIds
+      .map((componentId) => componentsById.get(componentId))
+      .filter((component): component is ProductRow => Boolean(component))
+    const comboItemPrices =
+      product.category === "Combo Ticket" ? allocateItemPrices(totalPrice, orderedComponents) : []
+    const orderItemSnapshots: OrderItemSnapshot[] = orderedComponents.map((component, index) => {
+      const scheduleItem = schedule.find((item) => item.productId === component.id)
+      const orderInputItem = orderInput.items?.find((item) => item.productId === component.id)
+      const itemPrice =
+        product.category === "Combo Ticket"
+          ? comboItemPrices[index]
+          : scheduleItem?.ticketBreakdown.reduce((sum, ticketType) => sum + ticketType.totalPrice, 0) ?? 0
+
+      return {
+        productId: component.id,
+        productTitle: component.title,
+        parentProductId: product.id,
+        visitDate: scheduleItem?.visitDate ?? orderInput.visitDate,
+        visitTime: scheduleItem?.visitTime || null,
+        itemPrice,
+        ticketBreakdown: orderInputItem?.ticketBreakdown ?? [],
+      }
+    })
+
     const [order] = await supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
       method: "POST",
       body: {
@@ -401,6 +435,7 @@ export async function createOrder(input: CreateOrderInput) {
         customer_phone: orderInput.customerPhone ?? null,
         total_price: totalPrice,
         locale: orderInput.locale ?? "en",
+        items: orderItemSnapshots,
       },
       prefer: "return=representation",
     })
@@ -408,29 +443,18 @@ export async function createOrder(input: CreateOrderInput) {
     orderId = order.id
     const orderNumber = order.order_number
 
-    const orderedComponents = componentIds
-      .map((componentId) => componentsById.get(componentId))
-      .filter((component): component is ProductRow => Boolean(component))
-    const comboItemPrices =
-      product.category === "Combo Ticket" ? allocateItemPrices(totalPrice, orderedComponents) : []
-
     await supabaseRequest("order_items", {
       method: "POST",
-      body: orderedComponents.map((component, index) => ({
+      body: orderItemSnapshots.map((item, index) => ({
         order_id: orderId,
-        product_id: component.id,
-        product_title: component.title,
-        ticket_breakdown: orderInput.items?.find((item) => item.productId === component.id)?.ticketBreakdown ?? [],
-        parent_product_id: product.id,
+        product_id: item.productId,
+        product_title: item.productTitle,
+        ticket_breakdown: item.ticketBreakdown,
+        parent_product_id: item.parentProductId,
         sort_order: index,
-        item_price:
-          product.category === "Combo Ticket"
-            ? comboItemPrices[index]
-            : schedule
-                .find((item) => item.productId === component.id)
-                ?.ticketBreakdown.reduce((sum, ticketType) => sum + ticketType.totalPrice, 0) ?? 0,
-        visit_date: schedule.find((item) => item.productId === component.id)?.visitDate ?? orderInput.visitDate,
-        visit_time: schedule.find((item) => item.productId === component.id)?.visitTime || null,
+        item_price: item.itemPrice,
+        visit_date: item.visitDate,
+        visit_time: item.visitTime,
       })),
       prefer: "return=minimal",
     })
