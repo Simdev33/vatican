@@ -69,6 +69,17 @@ type OrderItemSnapshot = {
   ticketBreakdown: TicketBreakdownRow[]
 }
 
+type OrderTicketCounts = {
+  adult_count: number
+  child_count: number
+  adult_18_count: number
+  child_under_18_count: number
+  adult_25_count: number
+  young_12_24_count: number
+  children_4_11_count: number
+  small_children_under_4_count: number
+}
+
 interface ProductRow {
   id: string
   title: string
@@ -241,6 +252,56 @@ function allocateItemPrices(totalPrice: number, components: ProductRow[]) {
   prices[prices.length - 1] = Number((totalPrice - prices.slice(0, -1).reduce((sum, price) => sum + price, 0)).toFixed(2))
 
   return prices
+}
+
+function getOrderTicketCounts(items: OrderItemSnapshot[]): OrderTicketCounts {
+  const counts: OrderTicketCounts = {
+    adult_count: 0,
+    child_count: 0,
+    adult_18_count: 0,
+    child_under_18_count: 0,
+    adult_25_count: 0,
+    young_12_24_count: 0,
+    children_4_11_count: 0,
+    small_children_under_4_count: 0,
+  }
+
+  for (const item of items) {
+    for (const ticketType of item.ticketBreakdown) {
+      const quantity = ticketType.quantity
+
+      if (ticketType.id === "adult-18") {
+        counts.adult_18_count += quantity
+        counts.adult_count += quantity
+      }
+
+      if (ticketType.id === "child-under-18") {
+        counts.child_under_18_count += quantity
+        counts.child_count += quantity
+      }
+
+      if (ticketType.id === "adult-25") {
+        counts.adult_25_count += quantity
+        counts.adult_count += quantity
+      }
+
+      if (ticketType.id === "young-12-24") {
+        counts.young_12_24_count += quantity
+      }
+
+      if (ticketType.id === "children-4-11") {
+        counts.children_4_11_count += quantity
+        counts.child_count += quantity
+      }
+
+      if (ticketType.id === "small-children-under-4") {
+        counts.small_children_under_4_count += quantity
+        counts.child_count += quantity
+      }
+    }
+  }
+
+  return counts
 }
 
 async function assertProductIsAvailable(productIds: string[], visitDate: string, visitTime: string) {
@@ -422,6 +483,7 @@ export async function createOrder(input: CreateOrderInput) {
         ticketBreakdown: orderInputItem?.ticketBreakdown ?? [],
       }
     })
+    const orderTicketCounts = getOrderTicketCounts(orderItemSnapshots)
 
     const [order] = await supabaseRequest<Array<{ id: string; order_number: number }>>("orders?select=id,order_number", {
       method: "POST",
@@ -435,6 +497,7 @@ export async function createOrder(input: CreateOrderInput) {
         customer_phone: orderInput.customerPhone ?? null,
         total_price: totalPrice,
         locale: orderInput.locale ?? "en",
+        ...orderTicketCounts,
         items: orderItemSnapshots,
       },
       prefer: "return=representation",
