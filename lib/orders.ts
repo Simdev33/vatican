@@ -91,12 +91,7 @@ type OrderRowInsert = {
 type OrderTicketCounts = {
   adult_count: number
   child_count: number
-  adult_18_count: number
-  child_under_18_count: number
-  adult_25_count: number
-  young_12_24_count: number
-  children_4_11_count: number
-  small_children_under_4_count: number
+  infant_count: number
 }
 
 interface ProductRow {
@@ -193,12 +188,7 @@ function emptyOrderTicketCounts(): OrderTicketCounts {
   return {
     adult_count: 0,
     child_count: 0,
-    adult_18_count: 0,
-    child_under_18_count: 0,
-    adult_25_count: 0,
-    young_12_24_count: 0,
-    children_4_11_count: 0,
-    small_children_under_4_count: 0,
+    infant_count: 0,
   }
 }
 
@@ -206,33 +196,16 @@ function addTicketCounts(counts: OrderTicketCounts, breakdown: TicketBreakdownRo
   for (const ticketType of breakdown) {
     const quantity = ticketType.quantity
 
-    if (ticketType.id === "adult-18") {
-      counts.adult_18_count += quantity
+    if (ticketType.id === "adult") {
       counts.adult_count += quantity
     }
 
-    if (ticketType.id === "child-under-18") {
-      counts.child_under_18_count += quantity
+    if (ticketType.id === "child") {
       counts.child_count += quantity
     }
 
-    if (ticketType.id === "adult-25") {
-      counts.adult_25_count += quantity
-      counts.adult_count += quantity
-    }
-
-    if (ticketType.id === "young-12-24") {
-      counts.young_12_24_count += quantity
-    }
-
-    if (ticketType.id === "children-4-11") {
-      counts.children_4_11_count += quantity
-      counts.child_count += quantity
-    }
-
-    if (ticketType.id === "small-children-under-4") {
-      counts.small_children_under_4_count += quantity
-      counts.child_count += quantity
+    if (ticketType.id === "infant") {
+      counts.infant_count += quantity
     }
   }
 
