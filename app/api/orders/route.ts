@@ -65,17 +65,33 @@ export async function POST(request: Request) {
       origin,
     })
 
-    return NextResponse.json({
-      ok: true,
-      checkoutUrl: session.url,
-    })
+    return NextResponse.json(
+      {
+        ok: true,
+        checkoutUrl: session.url,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      },
+    )
   } catch (error) {
     return NextResponse.json(
       {
         ok: false,
         message: error instanceof Error ? error.message : "Could not create order.",
       },
-      { status: 400 },
+      {
+        status: 400,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      },
     )
   }
 }

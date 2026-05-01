@@ -10,7 +10,9 @@ export default async function ThankYouPage({
 }) {
   const params = await searchParams
   const orderNumber = params?.order
-  const purchase = params?.session_id ? await completePaidCheckoutSession(params.session_id).catch(() => null) : null
+  const purchase = params?.session_id
+    ? await completePaidCheckoutSession(params.session_id).catch(() => null)
+    : null
   const displayedOrderNumber = purchase?.orderNumber ?? orderNumber
 
   return (

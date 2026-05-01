@@ -219,7 +219,7 @@ function TicketCard({
             >
               {ticket.images.map((image, index) => (
                 <div
-                  key={image}
+                  key={`${image}-${index}`}
                   className={`relative overflow-hidden ${ticket.images?.length === 3 && index === 0 ? "row-span-2" : ""}`}
                 >
                   <Image

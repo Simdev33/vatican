@@ -41,7 +41,7 @@ function TicketTypeSelector({
       </p>
       <div className="space-y-2">
         {options.map((option) => (
-          <label key={option.id} className="flex items-center justify-between gap-3 text-sm text-gray-700">
+          <label key={`${productId}-${option.id}`} className="flex items-center justify-between gap-3 text-sm text-gray-700">
             <span className="min-w-0 flex-1">{option.label}</span>
             <input
               type="number"
@@ -533,7 +533,7 @@ export function DateSelector({
         <div className="mb-2 grid grid-cols-7 gap-0">
           {weekDays.map((day, idx) => (
             <div
-              key={idx}
+              key={`${day}-${idx}`}
               className={cn(
                 "py-2 text-center text-[10px] font-bold uppercase tracking-wider",
                 idx >= 5 ? "text-red-400" : "text-gray-400"
@@ -569,7 +569,7 @@ export function DateSelector({
 
             return (
               <button
-                key={`current-${day}`}
+                key={`current-${dateKey}`}
                 onClick={() => handleDateClick(day)}
                 disabled={past || closed}
                 className={cn(
@@ -627,7 +627,7 @@ export function DateSelector({
 
               return (
                 <button
-                  key={slot}
+                  key={`${selectedTicket.id}-${slot}`}
                   type="button"
                   onClick={() => selectedDate && !isDisabledSlot && onTimeSelect(slot)}
                   disabled={isDisabledSlot}
@@ -723,7 +723,7 @@ export function DateSelector({
 
                     <div className="mb-2 grid grid-cols-7 gap-1">
                       {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                        <span key={day} className="text-center text-[11px] font-semibold text-gray-500">
+                        <span key={`${component.id}-${day}`} className="text-center text-[11px] font-semibold text-gray-500">
                           {day}
                         </span>
                       ))}
@@ -732,7 +732,7 @@ export function DateSelector({
                     <div className="grid grid-cols-7 gap-1">
                       {getCalendarCells(calendarMonth).map((date, index) => {
                         if (!date) {
-                          return <span key={`empty-${index}`} className="h-9" />
+                          return <span key={`${component.id}-empty-${index}`} className="h-9" />
                         }
 
                         const dateKey = formatDateKey(date)
@@ -742,7 +742,7 @@ export function DateSelector({
 
                         return (
                           <button
-                            key={dateKey}
+                            key={`${component.id}-${dateKey}`}
                             type="button"
                             onClick={() => selectComboDate(component.id, date)}
                             disabled={isPastDate || isClosedDate}
@@ -778,7 +778,7 @@ export function DateSelector({
 
                       return (
                         <button
-                          key={slot}
+                          key={`${component.id}-${slot}`}
                           type="button"
                           onClick={() => !disabledSlot && updateComboSchedule(component.id, "visitTime", slot)}
                           disabled={disabledSlot}
