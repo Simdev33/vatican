@@ -80,6 +80,7 @@ export function AdminAvailabilityManager({
   const selectedProduct = products.find((product) => product.id === selectedProductId) ?? products[0]
   const [month, setMonth] = React.useState(() => parseDateKey(selectedDate))
   const [pendingKey, setPendingKey] = React.useState<string | null>(null)
+  const dayClickTimeoutRef = React.useRef<number | null>(null)
   const selectedAvailability = availability[selectedProduct?.id ?? ""]
   const selectedProductTimeSlots = selectedProduct ? getTimeSlotsForProduct(selectedProduct.id) : []
   const selectedClosedDays = React.useMemo(
@@ -102,6 +103,14 @@ export function AdminAvailabilityManager({
   React.useEffect(() => {
     setMonth(parseDateKey(selectedDate))
   }, [selectedDate])
+
+  React.useEffect(() => {
+    return () => {
+      if (dayClickTimeoutRef.current) {
+        window.clearTimeout(dayClickTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const updateUrl = (productId: string, date: string) => {
     if (onSelectionChange) {
@@ -131,6 +140,28 @@ export function AdminAvailabilityManager({
     } finally {
       setPendingKey(null)
     }
+  }
+
+  const handleDayClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    productId: string,
+    date: string,
+    intent: "close" | "open",
+  ) => {
+    if (dayClickTimeoutRef.current) {
+      window.clearTimeout(dayClickTimeoutRef.current)
+      dayClickTimeoutRef.current = null
+    }
+
+    if (event.detail >= 2) {
+      void submitDayChange(productId, date, intent)
+      return
+    }
+
+    dayClickTimeoutRef.current = window.setTimeout(() => {
+      updateUrl(productId, date)
+      dayClickTimeoutRef.current = null
+    }, 250)
   }
 
   const submitSlotChange = async (slot: string, intent: "close" | "open") => {
@@ -253,8 +284,7 @@ export function AdminAvailabilityManager({
                 <button
                   key={dateKey}
                   type="button"
-                  onClick={() => updateUrl(selectedProduct.id, dateKey)}
-                  onDoubleClick={() => submitDayChange(selectedProduct.id, dateKey, closed ? "open" : "close")}
+                  onClick={(event) => handleDayClick(event, selectedProduct.id, dateKey, closed ? "open" : "close")}
                   disabled={pending}
                   title="Double-click to close/open full day"
                   className={cn(
