@@ -9,6 +9,8 @@ import { getTimeSlotsForProduct } from "@/lib/time-slots"
 import { getTicketTypeOptions, type TicketBreakdownItem, type TicketTypeOption } from "@/lib/ticket-types"
 import type { ProductAvailability } from "@/lib/availability"
 
+const ADULT_TICKET_TYPE_ID = "adult"
+
 function formatDateKey(date: Date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -29,7 +31,7 @@ function TicketTypeSelector({
   productId: string
   options: TicketTypeOption[]
   getQuantity: (productId: string, typeId: string) => number
-  onQuantityChange: (productId: string, typeId: string, value: string) => void
+  onQuantityChange: (productId: string, typeId: string, quantity: number) => void
   showError: boolean
   title: string
   errorMessage: string
@@ -40,20 +42,39 @@ function TicketTypeSelector({
         {title}
       </p>
       <div className="space-y-2">
-        {options.map((option) => (
-          <label key={`${productId}-${option.id}`} className="flex items-center justify-between gap-3 text-sm text-gray-700">
-            <span className="min-w-0 flex-1">{option.label}</span>
-            <input
-              type="number"
-              min="0"
-              step="1"
-              inputMode="numeric"
-              value={getQuantity(productId, option.id)}
-              onChange={(event) => onQuantityChange(productId, option.id, event.target.value)}
-              className="h-9 w-16 rounded-lg border border-gray-200 bg-white px-2 text-center text-sm font-semibold text-[#1a365d] outline-none transition-all focus:border-[#d4a853] focus:ring-2 focus:ring-[#d4a853]/30"
-            />
-          </label>
-        ))}
+        {options.map((option) => {
+          const quantity = getQuantity(productId, option.id)
+          const minQuantity = option.id === ADULT_TICKET_TYPE_ID ? 1 : 0
+          const canDecrease = quantity > minQuantity
+
+          return (
+            <div key={`${productId}-${option.id}`} className="flex items-center justify-between gap-3 text-sm text-gray-700">
+              <span className="min-w-0 flex-1">{option.label}</span>
+              <div className="flex items-center rounded-lg border border-gray-200 bg-white">
+                <button
+                  type="button"
+                  onClick={() => onQuantityChange(productId, option.id, quantity - 1)}
+                  disabled={!canDecrease}
+                  aria-label={`Decrease ${option.label}`}
+                  className="flex h-9 w-9 items-center justify-center rounded-l-lg text-lg font-semibold text-[#1a365d] transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-white"
+                >
+                  -
+                </button>
+                <span className="flex h-9 w-10 items-center justify-center border-x border-gray-100 text-sm font-semibold text-[#1a365d]">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onQuantityChange(productId, option.id, quantity + 1)}
+                  aria-label={`Increase ${option.label}`}
+                  className="flex h-9 w-9 items-center justify-center rounded-r-lg text-lg font-semibold text-[#1a365d] transition-colors hover:bg-gray-100"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )
+        })}
       </div>
       {showError && (
         <p className="mt-2 text-xs font-medium text-red-500">
@@ -239,7 +260,7 @@ export function DateSelector({
   }
 
   const getTicketTypeQuantity = (productId: string, typeId: string) => {
-    return ticketQuantities[productId]?.[typeId] ?? 0
+    return ticketQuantities[productId]?.[typeId] ?? (typeId === ADULT_TICKET_TYPE_ID ? 1 : 0)
   }
 
   const getTicketTypeTotal = (productId: string) => {
@@ -257,13 +278,14 @@ export function DateSelector({
     }))
   }
 
-  const updateTicketTypeQuantity = (productId: string, typeId: string, value: string) => {
-    const quantity = Math.max(0, Math.floor(Number(value) || 0))
+  const updateTicketTypeQuantity = (productId: string, typeId: string, quantity: number) => {
+    const minQuantity = typeId === ADULT_TICKET_TYPE_ID ? 1 : 0
+    const nextQuantity = Math.max(minQuantity, Math.floor(quantity))
     setTicketQuantities((current) => ({
       ...current,
       [productId]: {
         ...(current[productId] ?? {}),
-        [typeId]: quantity,
+        [typeId]: nextQuantity,
       },
     }))
     setSubmitAttempted(false)
