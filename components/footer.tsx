@@ -98,20 +98,12 @@ export function Footer() {
           <div className="rounded-2xl border-2 border-[#d4a853]/60 bg-[#0f2643]/85 p-5 shadow-[0_0_0_1px_rgba(212,168,83,0.2),0_12px_28px_rgba(0,0,0,0.35)]">
             <div className="flex items-center gap-2">
               <TriangleAlert className="h-5 w-5 text-[#f2cb73]" />
-              <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#f2cb73]">Disclaimer</p>
+              <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#f2cb73]">
+                {t.footer.disclaimer.title}
+              </p>
             </div>
             <p className="mt-3 text-sm leading-6 text-white/90">
-            This website (paristourpass.com) operates as an independent provider of tourist services and is not
-            affiliated with, sponsored by, authorized by, or operated by the Louvre Museum or any of its official
-            managing entities. Our purpose is to enhance the visitor experience by offering independent services,
-            including valid and official admission tickets and supplementary digital content such as audio guides.
-            Ticket Validity: All tickets offered on this website are genuine and officially valid, procured through
-            authorized distribution channels. Pricing: Our listed prices may incorporate additional costs covering
-            management fees, early availability access, dedicated customer service, and the provision of digital
-            materials. Trademarks: Trademarks, logos, and official names of the monuments mentioned are the exclusive
-            property of their respective owners. They are used strictly for descriptive purposes only, with no intent
-            to cause confusion or claim ownership. Operated by TicketCompass OÜ, Karamelli tn 2, 11317 Kesklinna
-            linnaosa, Tallinn, Estonia, Tax Number: EE102778049, Company Register: 17069651.
+              {t.footer.disclaimer.text}
             </p>
           </div>
         </div>
