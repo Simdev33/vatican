@@ -8,7 +8,7 @@ export default function TermsOfServicePage() {
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">Terms and Conditions</h1>
         <p className="mt-4 text-sm leading-7 text-slate-600">
           These Terms and Conditions (&ldquo;T&amp;C&rdquo;) govern the use of services and the purchase of products
-          offered by <strong>Puskár Gábor EV</strong> (individual entrepreneur). By using our services or purchasing
+          offered by <strong>TicketCompass OÜ</strong>. By using our services or purchasing
           from us, you (&ldquo;Customer&rdquo;) agree to be bound by these terms.
         </p>
 
@@ -17,8 +17,8 @@ export default function TermsOfServicePage() {
             <h2 className="text-lg font-semibold text-slate-900">1. Introduction</h2>
             <p className="mt-2">
               These Terms and Conditions (&ldquo;T&amp;C&rdquo;) govern the use of services and the purchase of
-              products offered by <strong>Puskár Gábor EV</strong> (individual entrepreneur). By using our services or
-              purchasing from us, you (&ldquo;Customer&rdquo;) agree to be bound by these terms.
+              products offered by <strong>TicketCompass OÜ</strong>. By using our services or purchasing from us, you
+              (&ldquo;Customer&rdquo;) agree to be bound by these terms.
             </p>
           </section>
 
@@ -152,6 +152,21 @@ export default function TermsOfServicePage() {
               <li>
                 If you have any questions about these terms, please contact us at:{" "}
                 <strong>info@paristourpass.com</strong>
+              </li>
+              <li>
+                <strong>Company:</strong> TicketCompass OÜ
+              </li>
+              <li>
+                <strong>Address:</strong> Karamelli tn 2, 11317 Kesklinna linnaosa, Tallinn
+              </li>
+              <li>
+                <strong>Country:</strong> Estonia
+              </li>
+              <li>
+                <strong>Tax Number:</strong> EE102778049
+              </li>
+              <li>
+                <strong>Company Register:</strong> 17069651
               </li>
               <li>In case of discrepancies between language versions of these T&amp;C, the English version prevails.</li>
             </ul>

@@ -110,8 +110,8 @@ export function Footer() {
             management fees, early availability access, dedicated customer service, and the provision of digital
             materials. Trademarks: Trademarks, logos, and official names of the monuments mentioned are the exclusive
             property of their respective owners. They are used strictly for descriptive purposes only, with no intent
-            to cause confusion or claim ownership. Operated by Puskár Gábor EV, Budapest Baross Tér 11/c, Pf 72,
-            Hungary, Tax number: 57632778-1-36.
+            to cause confusion or claim ownership. Operated by TicketCompass OÜ, Karamelli tn 2, 11317 Kesklinna
+            linnaosa, Tallinn, Estonia, Tax Number: EE102778049, Company Register: 17069651.
             </p>
           </div>
         </div>
