@@ -506,12 +506,15 @@ export default function CookiePolicyPage() {
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>
-                <strong>Puskár Gábor EV</strong>
+                <strong>TicketCompass OÜ</strong>
               </li>
-              <li>Budapest Baross Tér 11/c, Pf 72</li>
-              <li>Hungary</li>
+              <li>Karamelli tn 2, 11317 Kesklinna linnaosa, Tallinn</li>
+              <li>Estonia</li>
               <li>
-                <strong>Tax number:</strong> 57632778-1-36
+                <strong>Tax Number:</strong> EE102778049
+              </li>
+              <li>
+                <strong>Company Register:</strong> 17069651
               </li>
               <li>
                 <strong>Website:</strong> https://paristourpass.com
