@@ -24,6 +24,7 @@ type ProductCopy = {
 
 type Dictionary = {
   code: Locale
+  ownershipNotice: string
   nav: {
     tickets: string
     gallery: string
@@ -171,6 +172,7 @@ const enProducts: Record<string, ProductCopy> = {
 export const dictionaries: Record<Locale, Dictionary> = {
   en: {
     code: "en",
+    ownershipNotice: "ParisTourPass.com is owned and operated by TicketCompass.com.",
     nav: { tickets: "Tickets", gallery: "Gallery", discover: "Discover", contact: "Contact", bookNow: "Book Now" },
     hero: {
       titleTop: "Louvre, Eiffel Tower &",
@@ -192,7 +194,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       availableOn: "Available on",
       badges: { bestseller: "Most booked", popular: "Popular choice", "best-value": "Best value" },
       trustTitle: "Why Book With Us",
-      trustItems: ["Free cancellation up to 24h", "Instant confirmation", "Skip-the-line access", "Best price guarantee"],
+      trustItems: ["Free cancellation up to 24h", "Instant confirmation", "Skip the line to the cashier"],
     },
     booking: {
       selectDate: "Select Your Visit Date",
@@ -269,6 +271,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   fr: {
     code: "fr",
+    ownershipNotice: "ParisTourPass.com est détenu et exploité par TicketCompass.com.",
     nav: { tickets: "Billets", gallery: "Galerie", discover: "Découvrir", contact: "Contact", bookNow: "Réserver" },
     hero: {
       titleTop: "Billets Louvre, tour Eiffel et",
@@ -290,7 +293,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       availableOn: "Disponible le",
       badges: { bestseller: "Le plus réservé", popular: "Choix populaire", "best-value": "Meilleur prix" },
       trustTitle: "Pourquoi réserver avec nous",
-      trustItems: ["Annulation gratuite jusqu'à 24 h", "Confirmation instantanée", "Accès coupe-file", "Garantie du meilleur prix"],
+      trustItems: ["Annulation gratuite jusqu'à 24 h", "Confirmation instantanée", "Évitez la file à la caisse"],
     },
     booking: {
       selectDate: "Choisissez votre date de visite",
@@ -374,6 +377,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   de: {
     code: "de",
+    ownershipNotice: "ParisTourPass.com ist Eigentum von TicketCompass.com und wird von TicketCompass.com betrieben.",
     nav: { tickets: "Tickets", gallery: "Galerie", discover: "Entdecken", contact: "Kontakt", bookNow: "Jetzt buchen" },
     hero: {
       titleTop: "Louvre, Eiffelturm &",
@@ -395,7 +399,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       availableOn: "Verfügbar am",
       badges: { bestseller: "Meistgebucht", popular: "Beliebte Wahl", "best-value": "Bester Wert" },
       trustTitle: "Warum bei uns buchen",
-      trustItems: ["Kostenlose Stornierung bis 24 Std.", "Sofortige Bestätigung", "Skip-the-line Zugang", "Bestpreisgarantie"],
+      trustItems: ["Kostenlose Stornierung bis 24 Std.", "Sofortige Bestätigung", "Überspringen Sie die Warteschlange an der Kasse"],
     },
     booking: {
       selectDate: "Besuchsdatum wählen",
@@ -479,6 +483,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   es: {
     code: "es",
+    ownershipNotice: "ParisTourPass.com es propiedad de TicketCompass.com y está operado por TicketCompass.com.",
     nav: { tickets: "Entradas", gallery: "Galería", discover: "Descubrir", contact: "Contacto", bookNow: "Reservar" },
     hero: {
       titleTop: "Entradas Louvre, Torre Eiffel y",
@@ -500,7 +505,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       availableOn: "Disponible el",
       badges: { bestseller: "Más reservado", popular: "Opción popular", "best-value": "Mejor precio" },
       trustTitle: "Por qué reservar con nosotros",
-      trustItems: ["Cancelación gratis hasta 24 h", "Confirmación instantánea", "Acceso sin colas", "Garantía de mejor precio"],
+      trustItems: ["Cancelación gratis hasta 24 h", "Confirmación instantánea", "Evita la cola en la caja"],
     },
     booking: {
       selectDate: "Selecciona la fecha de visita",
@@ -584,6 +589,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   it: {
     code: "it",
+    ownershipNotice: "ParisTourPass.com è di proprietà di TicketCompass.com ed è gestito da TicketCompass.com.",
     nav: { tickets: "Biglietti", gallery: "Galleria", discover: "Scopri", contact: "Contatti", bookNow: "Prenota" },
     hero: {
       titleTop: "Biglietti Louvre, Torre Eiffel e",
@@ -605,7 +611,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       availableOn: "Disponibile il",
       badges: { bestseller: "Più prenotato", popular: "Scelta popolare", "best-value": "Miglior valore" },
       trustTitle: "Perché prenotare con noi",
-      trustItems: ["Cancellazione gratuita fino a 24h", "Conferma immediata", "Accesso salta-fila", "Garanzia miglior prezzo"],
+      trustItems: ["Cancellazione gratuita fino a 24h", "Conferma immediata", "Salta la fila alla cassa"],
     },
     booking: {
       selectDate: "Seleziona la data di visita",

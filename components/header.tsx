@@ -21,11 +21,11 @@ const navLabels = {
 } as const
 
 const brandTagline = {
-  en: "By ParisTourPass.com",
-  fr: "By ParisTourPass.com",
-  de: "By ParisTourPass.com",
-  es: "By ParisTourPass.com",
-  it: "By ParisTourPass.com",
+  en: "by TicketCompass",
+  fr: "by TicketCompass",
+  de: "by TicketCompass",
+  es: "by TicketCompass",
+  it: "by TicketCompass",
 } as const
 
 const getNavLabel = (labels: ReturnType<typeof useLanguage>["t"]["nav"], key: keyof typeof navLabels) =>
@@ -64,8 +64,9 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* Top bar */}
-      <div className="hidden bg-[#1a365d] py-1.5 sm:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-end gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="bg-[#1a365d] py-1.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <p className="text-xs font-medium text-white/80">{t.ownershipNotice}</p>
           <LanguageSwitcher />
         </div>
       </div>
@@ -82,7 +83,7 @@ export function Header() {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold leading-tight tracking-tight text-[#1a365d]">PARIS TOURS</span>
+              <span className="text-lg font-bold leading-tight tracking-tight text-[#1a365d]">Paris Tour Pass</span>
               <span className="text-[9px] tracking-[0.2em] text-gray-400">{brandTagline[locale]}</span>
             </div>
           </Link>

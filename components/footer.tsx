@@ -30,8 +30,8 @@ export function Footer() {
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold leading-tight text-white">PARIS TOURS</span>
-                <span className="text-[8px] tracking-[0.15em] text-white/50">By ParisTourPass.com</span>
+                <span className="text-lg font-bold leading-tight text-white">Paris Tour Pass</span>
+                <span className="text-[8px] tracking-[0.15em] text-white/50">by TicketCompass</span>
               </div>
             </Link>
             <p className="mb-6 text-sm leading-relaxed text-white/60">
@@ -129,7 +129,7 @@ export function Footer() {
           </div>
 
           <p className="text-xs text-white/40">
-            &copy; {new Date().getFullYear()} Paris Tickets by ParisTourPass.com. {t.footer.rights}
+            &copy; {new Date().getFullYear()} Paris Tour Pass by TicketCompass. {t.footer.rights}
           </p>
         </div>
       </div>
