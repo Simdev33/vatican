@@ -137,7 +137,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-lg font-semibold text-slate-900">10. Governing Law &amp; Dispute Resolution</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>
-                These T&amp;C are governed by the laws of Hungary. Courts of Hungary shall have jurisdiction, without
+                These T&amp;C are governed by the laws of Estonia. Courts of Estonia shall have jurisdiction, without
                 prejudice to mandatory consumer rights in your country of residence.
               </li>
               <li>
