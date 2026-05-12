@@ -1,7 +1,7 @@
 import { Header } from "@/components/header"
 import { Hero } from "@/components/hero"
 import { TicketGrid } from "@/components/ticket-grid"
-import { ContentSections, BookingSteps, DiscoverSection, FAQSection, Testimonials } from "@/components/content-sections"
+import { ContentSections, BookingSteps, DiscoverSection, FAQSection } from "@/components/content-sections"
 import { Footer } from "@/components/footer"
 import { getAvailabilityByProduct } from "@/lib/availability"
 import { getProducts } from "@/lib/products"
@@ -23,7 +23,6 @@ export default async function Home() {
         <TicketGrid initialTickets={products} availability={availability} />
         <BookingSteps />
         <ContentSections />
-        <Testimonials />
         <FAQSection />
         <DiscoverSection />
       </main>

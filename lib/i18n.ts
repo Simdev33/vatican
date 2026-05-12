@@ -251,7 +251,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       faqSubtitle: "Quick answers before you complete your booking.",
     },
     footer: {
-      description: "Your trusted partner for Louvre, Eiffel Tower, Seine River Cruise, and Paris combo tickets. Providing seamless booking experiences since 2015.",
+      description: "Your trusted partner for Louvre, Eiffel Tower, Seine River Cruise, and Paris combo tickets. Providing seamless booking experiences since 2024.",
       tickets: "Tickets",
       information: "Contact",
       legal: "Legal",
