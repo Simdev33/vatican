@@ -172,7 +172,7 @@ const enProducts: Record<string, ProductCopy> = {
 export const dictionaries: Record<Locale, Dictionary> = {
   en: {
     code: "en",
-    ownershipNotice: "ParisTourPass.com is owned and operated by TicketCompass.com.",
+    ownershipNotice: "ParisTourPass.com is owned and operated by TicketCompass.com. Independent site, not affiliated with the Louvre Museum.",
     nav: { tickets: "Tickets", gallery: "Gallery", discover: "Discover", contact: "Contact", bookNow: "Book Now" },
     hero: {
       titleTop: "Louvre, Eiffel Tower &",
@@ -264,14 +264,14 @@ export const dictionaries: Record<Locale, Dictionary> = {
       links: {
         tickets: ["Louvre Museum", "Eiffel Tower", "Seine River Cruise", "Paris Combo Tickets"],
         info: ["About Us", "Opening Hours", "FAQ", "Contact"],
-        legal: ["Privacy Policy", "Terms of Service", "Cancellation Policy", "Cookie Policy"],
+        legal: ["Privacy Policy", "Terms of Service", "Cancellation Policy", "Cookie Policy", "Disclaimer"],
       },
     },
     products: enProducts,
   },
   fr: {
     code: "fr",
-    ownershipNotice: "ParisTourPass.com est détenu et exploité par TicketCompass.com.",
+    ownershipNotice: "ParisTourPass.com est détenu et exploité par TicketCompass.com. Site indépendant, non affilié au musée du Louvre.",
     nav: { tickets: "Billets", gallery: "Galerie", discover: "Découvrir", contact: "Contact", bookNow: "Réserver" },
     hero: {
       titleTop: "Billets Louvre, tour Eiffel et",
@@ -363,7 +363,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       links: {
         tickets: ["Musée du Louvre", "Tour Eiffel", "Croisière sur la Seine", "Combos Paris"],
         info: ["À propos", "Horaires", "FAQ", "Contact"],
-        legal: ["Politique de confidentialité", "Conditions d'utilisation", "Politique d'annulation", "Politique cookies"],
+        legal: ["Politique de confidentialité", "Conditions d'utilisation", "Politique d'annulation", "Politique cookies", "Avertissement"],
       },
     },
     products: {
@@ -377,7 +377,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   de: {
     code: "de",
-    ownershipNotice: "ParisTourPass.com ist Eigentum von TicketCompass.com und wird von TicketCompass.com betrieben.",
+    ownershipNotice: "ParisTourPass.com ist Eigentum von TicketCompass.com und wird von TicketCompass.com betrieben. Unabhängige Website, nicht mit dem Louvre-Museum verbunden.",
     nav: { tickets: "Tickets", gallery: "Galerie", discover: "Entdecken", contact: "Kontakt", bookNow: "Jetzt buchen" },
     hero: {
       titleTop: "Louvre, Eiffelturm &",
@@ -469,7 +469,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       links: {
         tickets: ["Louvre", "Eiffelturm", "Seine-Kreuzfahrt", "Paris-Kombitickets"],
         info: ["Über uns", "Öffnungszeiten", "FAQ", "Kontakt"],
-        legal: ["Datenschutz", "Nutzungsbedingungen", "Stornierungsbedingungen", "Cookie-Richtlinie"],
+        legal: ["Datenschutz", "Nutzungsbedingungen", "Stornierungsbedingungen", "Cookie-Richtlinie", "Haftungsausschluss"],
       },
     },
     products: {
@@ -483,7 +483,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   es: {
     code: "es",
-    ownershipNotice: "ParisTourPass.com es propiedad de TicketCompass.com y está operado por TicketCompass.com.",
+    ownershipNotice: "ParisTourPass.com es propiedad de TicketCompass.com y está operado por TicketCompass.com. Sitio independiente, no afiliado al Museo del Louvre.",
     nav: { tickets: "Entradas", gallery: "Galería", discover: "Descubrir", contact: "Contacto", bookNow: "Reservar" },
     hero: {
       titleTop: "Entradas Louvre, Torre Eiffel y",
@@ -575,7 +575,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       links: {
         tickets: ["Museo del Louvre", "Torre Eiffel", "Crucero por el Sena", "Combos París"],
         info: ["Sobre nosotros", "Horarios", "FAQ", "Contacto"],
-        legal: ["Privacidad", "Términos del servicio", "Política de cancelación", "Política de cookies"],
+        legal: ["Privacidad", "Términos del servicio", "Política de cancelación", "Política de cookies", "Aviso legal"],
       },
     },
     products: {
@@ -589,7 +589,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   it: {
     code: "it",
-    ownershipNotice: "ParisTourPass.com è di proprietà di TicketCompass.com ed è gestito da TicketCompass.com.",
+    ownershipNotice: "ParisTourPass.com è di proprietà di TicketCompass.com ed è gestito da TicketCompass.com. Sito indipendente, non affiliato al Museo del Louvre.",
     nav: { tickets: "Biglietti", gallery: "Galleria", discover: "Scopri", contact: "Contatti", bookNow: "Prenota" },
     hero: {
       titleTop: "Biglietti Louvre, Torre Eiffel e",
@@ -681,7 +681,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       links: {
         tickets: ["Museo del Louvre", "Torre Eiffel", "Crociera sulla Senna", "Combo Parigi"],
         info: ["Chi siamo", "Orari", "FAQ", "Contatti"],
-        legal: ["Privacy Policy", "Termini di servizio", "Politica di cancellazione", "Cookie Policy"],
+        legal: ["Privacy Policy", "Termini di servizio", "Politica di cancellazione", "Cookie Policy", "Disclaimer"],
       },
     },
     products: {

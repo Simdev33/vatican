@@ -6,7 +6,7 @@ import { useLanguage } from "@/components/language-provider"
 
 export function Footer() {
   const { t } = useLanguage()
-  const legalHrefs = ["/privacy-policy", "/terms-of-service", "/cookie-policy"] as const
+  const legalHrefs = ["/privacy-policy", "/terms-of-service", "/cookie-policy", "/disclaimer"] as const
   const footerLinks = {
     tickets: t.footer.links.tickets.map((label) => ({ label, href: "#tickets" })),
     legal: t.footer.links.legal.filter((_, index) => index !== 2).map((label, index) => ({

@@ -16,6 +16,8 @@ const ticketDetails = [
 
 See the Mona Lisa, the Venus de Milo, the Winged Victory of Samothrace, and thousands of works inside one of the most celebrated museums in the world.`,
     duration: "2-3 hours",
+    officialPriceNote:
+      "Official ticket price: €22 (EEA) / €32 (non-EEA); The remaining amount corresponds to additional services, audioguides and booking services.",
     includes: [
       "Louvre Museum entry ticket",
       "Access to the permanent collections",
@@ -35,6 +37,8 @@ See the Mona Lisa, the Venus de Milo, the Winged Victory of Samothrace, and thou
 
 Choose the time that fits your itinerary and experience the symbol of Paris from above.`,
     duration: "2 hours",
+    officialPriceNote:
+      "Official ticket price: €14.80 (second floor by stairs only); The remaining amount corresponds to additional services, audioguides and booking services.",
     includes: [
       "Eiffel Tower access ticket",
       "Timed entry slot",
@@ -120,6 +124,9 @@ export function ContentSections() {
                 <p className="mb-6 text-sm text-gray-500">
                   {t.sections.estimatedTime} <span className="font-semibold text-[#1a365d]">{ticket.duration}</span>.
                 </p>
+                {ticket.officialPriceNote ? (
+                  <p className="mb-6 text-sm italic leading-6 text-gray-500">{ticket.officialPriceNote}</p>
+                ) : null}
 
                 {/* Includes / Excludes */}
                 <div className="grid gap-6 rounded-xl bg-gray-50 p-5 sm:grid-cols-2">
