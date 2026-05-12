@@ -34,7 +34,6 @@ export function AdminOrderSearch({ initialQuery }: { initialQuery: string }) {
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search by name, order ID, email or phone"
         className="h-10 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950"
       />
       {isPending && (

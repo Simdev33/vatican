@@ -850,7 +850,6 @@ export function DateSelector({
                 setFullName(event.target.value)
                 clearContactErrors()
               }}
-              placeholder={t.booking.namePlaceholder}
               className={cn(
                 "w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2",
                 showNameError
@@ -875,7 +874,6 @@ export function DateSelector({
                 setEmail(event.target.value)
                 clearContactErrors()
               }}
-              placeholder={t.booking.emailPlaceholder}
               className={cn(
                 "w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2",
                 showEmailError
@@ -900,7 +898,6 @@ export function DateSelector({
                 setEmailConfirmation(event.target.value)
                 clearContactErrors()
               }}
-              placeholder={t.booking.emailConfirmationPlaceholder}
               className={cn(
                 "w-full rounded-lg border px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:ring-2",
                 showEmailConfirmationError
@@ -927,7 +924,6 @@ export function DateSelector({
                 setPhoneNumber(sanitizedPhone)
                 clearContactErrors()
               }}
-              placeholder={t.booking.phonePlaceholder}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-all focus:border-[#d4a853] focus:ring-2 focus:ring-[#d4a853]/30"
             />
           </div>
