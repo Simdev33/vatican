@@ -112,7 +112,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <strong>Legal &amp; tax compliance:</strong> maintain invoices and accounting records; comply with
-                consumer protection and EU/HU tax rules; respond to lawful requests from authorities.
+                consumer protection and EU/Estonian tax rules; respond to lawful requests from authorities.
                 <br />
                 <em>Legal basis:</em> Legal obligation (Art. 6(1)(c)).
               </li>
