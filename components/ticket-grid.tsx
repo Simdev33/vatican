@@ -7,7 +7,12 @@ import { DateSelector } from "@/components/date-selector"
 import { useLanguage } from "@/components/language-provider"
 import type { AvailabilityByProduct } from "@/lib/availability"
 import { getProductComponentIds } from "@/lib/product-components"
-import { createTiktokContent, trackTiktokEvent } from "@/lib/tiktok-events"
+import {
+  createTiktokContent,
+  hasTiktokMarketingConsent,
+  readStoredTiktokClickId,
+  trackTiktokEvent,
+} from "@/lib/tiktok-events"
 
 const EIFFEL_IMAGE =
   "https://res.cloudinary.com/dldgqjxkn/image/upload/v1777135801/champ-de-mars-eiffel_gjkjuk.jpg"
@@ -379,7 +384,8 @@ export function TicketGrid({
   useEffect(() => {
     if (!selectedTicket) return
 
-    void trackTiktokEvent("ViewContent", {
+    const eventId = `view-content:${selectedTicket.id}:${Date.now()}`
+    const payload = {
       contents: [
         createTiktokContent({
           id: selectedTicket.id,
@@ -389,7 +395,27 @@ export function TicketGrid({
       ],
       value: selectedTicket.price,
       currency: "EUR",
-    })
+      event_id: eventId,
+    }
+
+    void trackTiktokEvent("ViewContent", payload)
+
+    if (hasTiktokMarketingConsent()) {
+      void fetch("/api/tiktok/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: "ViewContent",
+          eventId,
+          ...payload,
+          marketingConsent: true,
+          pageUrl: window.location.href,
+          ttclid: readStoredTiktokClickId(),
+        }),
+      }).catch(() => undefined)
+    }
   }, [selectedTicket, t.products])
 
   const handleTicketSelect = (ticketId: string, options: { scrollToDateSelector?: boolean } = {}) => {

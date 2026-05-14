@@ -2,6 +2,7 @@ import Stripe from "stripe"
 import { createOrder, type CreateOrderInput, type PreparedCheckoutOrder } from "@/lib/orders"
 import { getTicketTypeOptions, type TicketBreakdownItem } from "@/lib/ticket-types"
 import { isLocale, type Locale } from "@/lib/i18n"
+import { sendTiktokServerEvent } from "@/lib/tiktok-server-events"
 
 let stripeClient: Stripe | null = null
 
@@ -62,6 +63,13 @@ function decodeTicketBreakdowns(encoded: string | undefined, locale: Locale) {
 export async function createCheckoutSession(input: {
   order: PreparedCheckoutOrder
   origin: string
+  tracking?: {
+    marketingConsent?: boolean
+    pageUrl?: string
+    ttclid?: string
+    ipAddress?: string
+    userAgent?: string
+  }
 }) {
   const amount = toStripeAmount(input.order.totalPrice)
 
@@ -93,6 +101,11 @@ export async function createCheckoutSession(input: {
       customerEmail: input.order.orderInput.customerEmail,
       customerPhone: input.order.orderInput.customerPhone ?? "",
       locale: input.order.orderInput.locale ?? "en",
+      marketingConsent: input.tracking?.marketingConsent ? "true" : "false",
+      pageUrl: input.tracking?.pageUrl?.slice(0, 450) ?? "",
+      ttclid: input.tracking?.ttclid?.slice(0, 450) ?? "",
+      ipAddress: input.tracking?.ipAddress?.slice(0, 100) ?? "",
+      userAgent: input.tracking?.userAgent?.slice(0, 450) ?? "",
       ticketBreakdowns: encodeTicketBreakdowns(input.order.orderInput),
       items: JSON.stringify(
         input.order.orderInput.items?.map(({ ticketBreakdown, ...item }) => item) ?? [],
@@ -139,6 +152,29 @@ export async function completePaidCheckoutSession(sessionId: string) {
   }
 
   if (session.metadata?.orderNumber) {
+    if (session.metadata.marketingConsent === "true" && session.metadata.productId) {
+      await sendTiktokServerEvent({
+        event: "Purchase",
+        eventId: `purchase:${session.metadata.orderNumber}`,
+        contents: [
+          {
+            content_id: session.metadata.productId,
+            content_type: "product",
+            content_name: session.metadata.productTitle ?? session.metadata.productId,
+          },
+        ],
+        value: Number(((session.amount_total ?? 0) / 100).toFixed(2)),
+        currency: session.currency?.toUpperCase() ?? "EUR",
+        pageUrl: session.metadata.pageUrl || undefined,
+        ttclid: session.metadata.ttclid || undefined,
+        customerEmail: session.metadata.customerEmail,
+        customerPhone: session.metadata.customerPhone || undefined,
+        externalId: session.metadata.orderNumber,
+        ipAddress: session.metadata.ipAddress || undefined,
+        userAgent: session.metadata.userAgent || undefined,
+      }).catch(() => false)
+    }
+
     return {
       orderNumber: session.metadata.orderNumber,
       transactionId: session.metadata.orderNumber,
@@ -160,6 +196,29 @@ export async function completePaidCheckoutSession(sessionId: string) {
       orderNumber: order.orderNumber,
     },
   })
+
+  if (session.metadata?.marketingConsent === "true") {
+    await sendTiktokServerEvent({
+      event: "Purchase",
+      eventId: `purchase:${order.orderNumber}`,
+      contents: [
+        {
+          content_id: orderInput.productId,
+          content_type: "product",
+          content_name: order.productTitle,
+        },
+      ],
+      value: Number(((session.amount_total ?? 0) / 100).toFixed(2)),
+      currency: session.currency?.toUpperCase() ?? "EUR",
+      pageUrl: session.metadata.pageUrl || undefined,
+      ttclid: session.metadata.ttclid || undefined,
+      customerEmail: orderInput.customerEmail,
+      customerPhone: orderInput.customerPhone,
+      externalId: order.orderNumber,
+      ipAddress: session.metadata.ipAddress || undefined,
+      userAgent: session.metadata.userAgent || undefined,
+    }).catch(() => false)
+  }
 
   return {
     orderNumber: order.orderNumber,

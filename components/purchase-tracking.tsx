@@ -109,6 +109,7 @@ export function PurchaseTracking({
         ],
         value,
         currency,
+        event_id: `purchase:${transactionId}`,
       })
 
       if (!isCancelled && tracked) {

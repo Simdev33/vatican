@@ -7,7 +7,14 @@ import { useLanguage } from "@/components/language-provider"
 import { isPastBookingSlot } from "@/lib/booking-time"
 import { getTimeSlotsForProduct } from "@/lib/time-slots"
 import { getTicketTypeOptions, type TicketBreakdownItem, type TicketTypeOption } from "@/lib/ticket-types"
-import { createTiktokContent, identifyTiktokCustomer, trackTiktokEvent, type TiktokContent } from "@/lib/tiktok-events"
+import {
+  createTiktokContent,
+  hasTiktokMarketingConsent,
+  identifyTiktokCustomer,
+  readStoredTiktokClickId,
+  trackTiktokEvent,
+  type TiktokContent,
+} from "@/lib/tiktok-events"
 import type { ProductAvailability } from "@/lib/availability"
 
 const ADULT_TICKET_TYPE_ID = "adult"
@@ -323,13 +330,14 @@ export function DateSelector({
     ]
   }
 
-  const trackTiktokCheckout = async () => {
+  const trackTiktokCheckout = async (checkoutSessionId?: string) => {
     if (!selectedTicket) return
 
     const payload = {
       contents: getTiktokContents(),
       value: getCheckoutValue(),
       currency: "EUR",
+      ...(checkoutSessionId ? { event_id: `checkout:${checkoutSessionId}` } : {}),
     }
 
     await Promise.race([
@@ -484,6 +492,9 @@ export function DateSelector({
           customerEmail: email,
           customerPhone: phoneNumber,
           locale,
+          marketingConsent: hasTiktokMarketingConsent(),
+          pageUrl: window.location.href,
+          ttclid: readStoredTiktokClickId(),
           ticketBreakdown: isComboSelection ? undefined : getTicketBreakdown(selectedTicket.id),
           items: isComboSelection
             ? selectedComponents.map((component) => ({
@@ -504,13 +515,14 @@ export function DateSelector({
         orderId?: string
         orderNumber?: string
         checkoutUrl?: string
+        checkoutSessionId?: string
       }
 
       if (!response.ok || !result.ok) {
         throw new Error(result.message ?? "Could not complete the order.")
       }
 
-      await trackTiktokCheckout().catch(() => undefined)
+      await trackTiktokCheckout(result.checkoutSessionId).catch(() => undefined)
       setSubmitMessage(t.booking.redirecting)
       setSubmitAttempted(false)
       setFullName("")

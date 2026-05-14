@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prepareCheckoutOrder } from "@/lib/orders"
 import { createCheckoutSession } from "@/lib/stripe-checkout"
 import { isLocale } from "@/lib/i18n"
+import { getRequestIpAddress, sendTiktokServerEvent } from "@/lib/tiktok-server-events"
 
 export const runtime = "nodejs"
 export const preferredRegion = "fra1"
@@ -14,6 +15,9 @@ interface OrderRequestBody {
   customerEmail?: string
   customerPhone?: string
   locale?: string
+  marketingConsent?: boolean
+  pageUrl?: string
+  ttclid?: string
   ticketBreakdown?: Array<{
     id?: string
     label?: string
@@ -63,12 +67,43 @@ export async function POST(request: Request) {
     const session = await createCheckoutSession({
       order,
       origin,
+      tracking: {
+        marketingConsent: body.marketingConsent === true,
+        pageUrl: body.pageUrl,
+        ttclid: body.ttclid,
+        ipAddress: getRequestIpAddress(request),
+        userAgent: request.headers.get("user-agent") ?? undefined,
+      },
     })
+
+    if (body.marketingConsent === true) {
+      await sendTiktokServerEvent({
+        event: "InitiateCheckout",
+        eventId: `checkout:${session.id}`,
+        contents: [
+          {
+            content_id: order.orderInput.productId,
+            content_type: "product",
+            content_name: order.productTitle,
+          },
+        ],
+        value: order.totalPrice,
+        currency: "EUR",
+        pageUrl: body.pageUrl,
+        ttclid: body.ttclid,
+        customerEmail: order.orderInput.customerEmail,
+        customerPhone: order.orderInput.customerPhone,
+        externalId: order.orderInput.customerEmail,
+        ipAddress: getRequestIpAddress(request),
+        userAgent: request.headers.get("user-agent") ?? undefined,
+      }).catch(() => false)
+    }
 
     return NextResponse.json(
       {
         ok: true,
         checkoutUrl: session.url,
+        checkoutSessionId: session.id,
       },
       {
         headers: {

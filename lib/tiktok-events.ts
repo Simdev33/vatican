@@ -8,6 +8,7 @@ export type TiktokEventPayload = {
   contents: TiktokContent[]
   value: number
   currency: string
+  event_id?: string
   search_string?: string
 }
 
@@ -85,6 +86,34 @@ function normalizeEmail(email: string) {
 
 function normalizePhoneNumber(phoneNumber: string) {
   return phoneNumber.replace(/[^\d+]/g, "")
+}
+
+export function hasTiktokMarketingConsent() {
+  if (typeof window === "undefined") return false
+
+  try {
+    const storedConsent = window.localStorage.getItem("paristourpass-cookie-consent-v1")
+
+    if (!storedConsent) return false
+
+    return JSON.parse(storedConsent)?.marketing === true
+  } catch {
+    return false
+  }
+}
+
+export function readStoredTiktokClickId() {
+  if (typeof window === "undefined") return undefined
+
+  const url = new URL(window.location.href)
+  const ttclid = url.searchParams.get("ttclid")
+
+  if (ttclid) {
+    window.localStorage.setItem("tiktok-ttclid", ttclid)
+    return ttclid
+  }
+
+  return window.localStorage.getItem("tiktok-ttclid") ?? undefined
 }
 
 export function createTiktokContent(input: {
