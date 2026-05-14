@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { CookieBanner } from '@/components/cookie-banner'
 import { GoogleTags } from '@/components/google-tags'
 import { LanguageProvider } from '@/components/language-provider'
+import { TiktokPixel } from '@/components/tiktok-pixel'
 import './globals.css'
 
 const inter = Inter({ 
@@ -36,6 +37,7 @@ export default function RootLayout({
     <html lang="en" className="bg-background">
       <body className={`${inter.variable} font-sans antialiased`}>
         <GoogleTags />
+        <TiktokPixel />
         <LanguageProvider>
           {children}
           <CookieBanner />
