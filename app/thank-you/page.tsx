@@ -22,6 +22,10 @@ export default async function ThankYouPage({
           transactionId={purchase.transactionId}
           value={purchase.value}
           currency={purchase.currency}
+          productId={purchase.productId}
+          productTitle={purchase.productTitle}
+          customerEmail={purchase.customerEmail}
+          customerPhone={purchase.customerPhone}
         />
       )}
       <div className="mx-auto max-w-5xl">

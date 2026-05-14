@@ -7,9 +7,18 @@ import { useLanguage } from "@/components/language-provider"
 import { isPastBookingSlot } from "@/lib/booking-time"
 import { getTimeSlotsForProduct } from "@/lib/time-slots"
 import { getTicketTypeOptions, type TicketBreakdownItem, type TicketTypeOption } from "@/lib/ticket-types"
+import { createTiktokContent, identifyTiktokCustomer, trackTiktokEvent, type TiktokContent } from "@/lib/tiktok-events"
 import type { ProductAvailability } from "@/lib/availability"
 
 const ADULT_TICKET_TYPE_ID = "adult"
+
+type TrackingProduct = {
+  id: string
+  title: string
+  price: number
+  ticketTypePrices?: Record<string, number>
+  category: "Entry Ticket" | "River Cruise" | "Combo Ticket"
+}
 
 function formatDateKey(date: Date) {
   const year = date.getFullYear()
@@ -278,6 +287,64 @@ export function DateSelector({
     }))
   }
 
+  const getTicketTypeUnitPrice = (product: TrackingProduct, typeId: string | undefined) => {
+    const ticketTypePrice = typeId ? product.ticketTypePrices?.[typeId] : undefined
+
+    if (typeof ticketTypePrice === "number") {
+      return ticketTypePrice
+    }
+
+    return product.price
+  }
+
+  const getProductTicketTotal = (product: TrackingProduct) => {
+    return Number(
+      getTicketBreakdown(product.id)
+        .reduce((total, item) => total + getTicketTypeUnitPrice(product, item.id) * item.quantity, 0)
+        .toFixed(2),
+    )
+  }
+
+  const getCheckoutValue = () => {
+    if (!selectedTicket) return 0
+
+    return isComboSelection ? selectedTicket.price : getProductTicketTotal(selectedTicket)
+  }
+
+  const getTiktokContents = (): TiktokContent[] => {
+    if (!selectedTicket) return []
+
+    return [
+      createTiktokContent({
+        id: selectedTicket.id,
+        name: selectedTicket.title,
+        type: selectedTicket.category === "Combo Ticket" ? "product_group" : "product",
+      }),
+    ]
+  }
+
+  const trackTiktokCheckout = async () => {
+    if (!selectedTicket) return
+
+    const payload = {
+      contents: getTiktokContents(),
+      value: getCheckoutValue(),
+      currency: "EUR",
+    }
+
+    await Promise.race([
+      Promise.all([
+        identifyTiktokCustomer({
+          email,
+          phoneNumber,
+          externalId: email,
+        }),
+        trackTiktokEvent("InitiateCheckout", payload),
+      ]),
+      new Promise((resolve) => window.setTimeout(resolve, 750)),
+    ])
+  }
+
   const updateTicketTypeQuantity = (productId: string, typeId: string, quantity: number) => {
     const minQuantity = typeId === ADULT_TICKET_TYPE_ID ? 1 : 0
     const nextQuantity = Math.max(minQuantity, Math.floor(quantity))
@@ -443,6 +510,7 @@ export function DateSelector({
         throw new Error(result.message ?? "Could not complete the order.")
       }
 
+      await trackTiktokCheckout().catch(() => undefined)
       setSubmitMessage(t.booking.redirecting)
       setSubmitAttempted(false)
       setFullName("")
@@ -649,7 +717,7 @@ export function DateSelector({
 
               return (
                 <button
-                  key={`${selectedTicket.id}-${slot}`}
+                  key={`${selectedTicket?.id ?? "ticket"}-${slot}`}
                   type="button"
                   onClick={() => selectedDate && !isDisabledSlot && onTimeSelect(slot)}
                   disabled={isDisabledSlot}

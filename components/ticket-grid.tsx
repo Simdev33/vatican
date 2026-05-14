@@ -7,6 +7,7 @@ import { DateSelector } from "@/components/date-selector"
 import { useLanguage } from "@/components/language-provider"
 import type { AvailabilityByProduct } from "@/lib/availability"
 import { getProductComponentIds } from "@/lib/product-components"
+import { createTiktokContent, trackTiktokEvent } from "@/lib/tiktok-events"
 
 const EIFFEL_IMAGE =
   "https://res.cloudinary.com/dldgqjxkn/image/upload/v1777135801/champ-de-mars-eiffel_gjkjuk.jpg"
@@ -374,6 +375,22 @@ export function TicketGrid({
   const ticketHighlightTimeoutRef = useRef<number | null>(null)
   const [highlightDateSelector, setHighlightDateSelector] = useState(false)
   const [highlightedTicketId, setHighlightedTicketId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!selectedTicket) return
+
+    void trackTiktokEvent("ViewContent", {
+      contents: [
+        createTiktokContent({
+          id: selectedTicket.id,
+          name: t.products[selectedTicket.id]?.title ?? selectedTicket.title,
+          type: selectedTicket.category === "Combo Ticket" ? "product_group" : "product",
+        }),
+      ],
+      value: selectedTicket.price,
+      currency: "EUR",
+    })
+  }, [selectedTicket, t.products])
 
   const handleTicketSelect = (ticketId: string, options: { scrollToDateSelector?: boolean } = {}) => {
     const shouldScrollToDateSelector = options.scrollToDateSelector ?? true

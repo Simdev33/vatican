@@ -86,6 +86,7 @@ export async function createCheckoutSession(input: {
     ],
     metadata: {
       productId: input.order.orderInput.productId,
+      productTitle: input.order.productTitle,
       visitDate: input.order.orderInput.visitDate,
       visitTime: input.order.orderInput.visitTime,
       customerName: input.order.orderInput.customerName,
@@ -143,6 +144,10 @@ export async function completePaidCheckoutSession(sessionId: string) {
       transactionId: session.metadata.orderNumber,
       value: Number(((session.amount_total ?? 0) / 100).toFixed(2)),
       currency: session.currency?.toUpperCase() ?? "EUR",
+      productId: session.metadata.productId,
+      productTitle: session.metadata.productTitle ?? session.metadata.productId,
+      customerEmail: session.metadata.customerEmail,
+      customerPhone: session.metadata.customerPhone || undefined,
     }
   }
 
@@ -161,6 +166,10 @@ export async function completePaidCheckoutSession(sessionId: string) {
     transactionId: order.orderNumber,
     value: Number(((session.amount_total ?? 0) / 100).toFixed(2)),
     currency: session.currency?.toUpperCase() ?? "EUR",
+    productId: orderInput.productId,
+    productTitle: order.productTitle,
+    customerEmail: orderInput.customerEmail,
+    customerPhone: orderInput.customerPhone,
   }
 }
 

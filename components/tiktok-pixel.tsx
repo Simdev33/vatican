@@ -11,7 +11,7 @@ type CookieConsent = {
 }
 
 const CONSENT_STORAGE_KEY = "paristourpass-cookie-consent-v1"
-const TIKTOK_PIXEL_ID = "D82OJBBC77U26NJHHQI0"
+const TIKTOK_PIXEL_ID = "D82P31BC77U26NJHHR5G"
 
 function readStoredConsent() {
   try {
