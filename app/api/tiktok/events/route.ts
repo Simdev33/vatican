@@ -4,7 +4,7 @@ import { getRequestIpAddress, sendTiktokServerEvent } from "@/lib/tiktok-server-
 export const runtime = "nodejs"
 
 type TiktokEventRequestBody = {
-  event?: "ViewContent"
+  event?: "PageView" | "ViewContent" | "AddToCart"
   eventId?: string
   contents?: Array<{
     content_id?: string
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as TiktokEventRequestBody
 
-    if (body.marketingConsent !== true || body.event !== "ViewContent" || !body.eventId) {
+    if (body.marketingConsent !== true || !body.event || !body.eventId) {
       return NextResponse.json({ ok: true, skipped: true })
     }
 
@@ -34,14 +34,14 @@ export async function POST(request: Request) {
       }))
       .filter((item) => item.content_id && item.content_name)
 
-    if (contents.length === 0) {
+    if (body.event !== "PageView" && contents.length === 0) {
       return NextResponse.json({ ok: true, skipped: true })
     }
 
     await sendTiktokServerEvent({
-      event: "ViewContent",
+      event: body.event,
       eventId: body.eventId,
-      contents,
+      contents: body.event === "PageView" ? undefined : contents,
       value: Number(body.value ?? 0),
       currency: body.currency ?? "EUR",
       pageUrl: body.pageUrl,

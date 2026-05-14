@@ -2,6 +2,7 @@
 
 import Script from "next/script"
 import { useEffect, useState } from "react"
+import { hasTiktokMarketingConsent, readStoredTiktokClickId } from "@/lib/tiktok-events"
 
 type CookieConsent = {
   necessary: true
@@ -39,6 +40,24 @@ export function TiktokPixel() {
 
     return () => window.removeEventListener("cookie-consent-updated", handleConsentUpdate)
   }, [])
+
+  useEffect(() => {
+    if (!consent?.marketing || !hasTiktokMarketingConsent()) return
+
+    void fetch("/api/tiktok/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event: "PageView",
+        eventId: `page-view:${window.location.pathname}:${Date.now()}`,
+        marketingConsent: true,
+        pageUrl: window.location.href,
+        ttclid: readStoredTiktokClickId(),
+      }),
+    }).catch(() => undefined)
+  }, [consent?.marketing])
 
   if (!consent?.marketing) return null
 

@@ -189,6 +189,7 @@ export function DateSelector({
     const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
     if (newDate >= today) {
       onDateSelect(newDate)
+      trackTiktokAddToCart(formatDateKey(newDate))
     }
   }
 
@@ -353,6 +354,37 @@ export function DateSelector({
     ])
   }
 
+  const trackTiktokAddToCart = (dateKey: string) => {
+    if (!selectedTicket) return
+
+    const eventId = `add-to-cart:${selectedTicket.id}:${dateKey}:${Date.now()}`
+    const payload = {
+      contents: getTiktokContents(),
+      value: getCheckoutValue(),
+      currency: "EUR",
+      event_id: eventId,
+    }
+
+    void trackTiktokEvent("AddToCart", payload)
+
+    if (hasTiktokMarketingConsent()) {
+      void fetch("/api/tiktok/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: "AddToCart",
+          eventId,
+          ...payload,
+          marketingConsent: true,
+          pageUrl: window.location.href,
+          ttclid: readStoredTiktokClickId(),
+        }),
+      }).catch(() => undefined)
+    }
+  }
+
   const updateTicketTypeQuantity = (productId: string, typeId: string, quantity: number) => {
     const minQuantity = typeId === ADULT_TICKET_TYPE_ID ? 1 : 0
     const nextQuantity = Math.max(minQuantity, Math.floor(quantity))
@@ -398,6 +430,7 @@ export function DateSelector({
     if (isComboDayClosed(productId, dateKey)) return
 
     updateComboSchedule(productId, "visitDate", dateKey)
+    trackTiktokAddToCart(dateKey)
     setComboMonths((current) => ({
       ...current,
       [productId]: new Date(date.getFullYear(), date.getMonth(), 1),

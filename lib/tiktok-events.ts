@@ -5,14 +5,15 @@ export type TiktokContent = {
 }
 
 export type TiktokEventPayload = {
-  contents: TiktokContent[]
-  value: number
-  currency: string
+  contents?: TiktokContent[]
+  value?: number
+  currency?: string
   event_id?: string
   search_string?: string
 }
 
 type TiktokEventName =
+  | "PageView"
   | "ViewContent"
   | "AddToWishlist"
   | "Search"

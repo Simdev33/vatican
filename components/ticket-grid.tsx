@@ -381,19 +381,21 @@ export function TicketGrid({
   const [highlightDateSelector, setHighlightDateSelector] = useState(false)
   const [highlightedTicketId, setHighlightedTicketId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!selectedTicket) return
+  const trackTicketViewContent = (ticketId: string) => {
+    const ticket = availableTickets.find((item) => item.id === ticketId)
 
-    const eventId = `view-content:${selectedTicket.id}:${Date.now()}`
+    if (!ticket) return
+
+    const eventId = `view-content:${ticket.id}:${Date.now()}`
     const payload = {
       contents: [
         createTiktokContent({
-          id: selectedTicket.id,
-          name: t.products[selectedTicket.id]?.title ?? selectedTicket.title,
-          type: selectedTicket.category === "Combo Ticket" ? "product_group" : "product",
+          id: ticket.id,
+          name: t.products[ticket.id]?.title ?? ticket.title,
+          type: ticket.category === "Combo Ticket" ? "product_group" : "product",
         }),
       ],
-      value: selectedTicket.price,
+      value: ticket.price,
       currency: "EUR",
       event_id: eventId,
     }
@@ -416,10 +418,11 @@ export function TicketGrid({
         }),
       }).catch(() => undefined)
     }
-  }, [selectedTicket, t.products])
+  }
 
   const handleTicketSelect = (ticketId: string, options: { scrollToDateSelector?: boolean } = {}) => {
     const shouldScrollToDateSelector = options.scrollToDateSelector ?? true
+    trackTicketViewContent(ticketId)
     setSelectedTicketId(ticketId)
     setSelectedTime("")
     setHighlightedTicketId(ticketId)

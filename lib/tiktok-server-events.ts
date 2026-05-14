@@ -1,6 +1,6 @@
 import { createHash } from "crypto"
 
-type TiktokServerEventName = "ViewContent" | "InitiateCheckout" | "Purchase"
+type TiktokServerEventName = "PageView" | "ViewContent" | "AddToCart" | "InitiateCheckout" | "Purchase"
 
 type TiktokServerContent = {
   content_id: string
@@ -11,9 +11,9 @@ type TiktokServerContent = {
 type TiktokServerEventInput = {
   event: TiktokServerEventName
   eventId: string
-  contents: TiktokServerContent[]
-  value: number
-  currency: string
+  contents?: TiktokServerContent[]
+  value?: number
+  currency?: string
   pageUrl?: string
   userAgent?: string
   ipAddress?: string
@@ -82,9 +82,9 @@ export async function sendTiktokServerEvent(input: TiktokServerEventInput) {
         user: getUserData(input),
       },
       properties: {
-        contents: input.contents,
-        value: input.value,
-        currency: input.currency,
+        ...(input.contents ? { contents: input.contents } : {}),
+        ...(typeof input.value === "number" ? { value: input.value } : {}),
+        ...(input.currency ? { currency: input.currency } : {}),
       },
     }),
   })
